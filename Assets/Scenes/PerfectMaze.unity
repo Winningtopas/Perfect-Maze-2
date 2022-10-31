@@ -453,13 +453,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1783336788}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -5}
+  m_LocalRotation: {x: 0.36531726, y: 0.26921096, z: -0.11123569, w: 0.88413537}
+  m_LocalPosition: {x: 0, y: 43.31, z: -5}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 44.9, y: 33.87, z: 0}
 --- !u!1 &2020928717
 GameObject:
   m_ObjectHideFlags: 0
@@ -491,9 +491,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 397c2bfcf56014c4892bdf8c5a858a74, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  mazeSizeX: 1
-  mazeSizeY: 2
-  mazeSizeZ: 1
+  mazeSizeX: 5
+  mazeSizeY: 5
+  mazeSizeZ: 22
   cellPrefab: {fileID: 5224783885215737960, guid: e3452f444c0d04743b52890aba8dcc04, type: 3}
   cells: []
 --- !u!4 &2020928719
@@ -537,7 +537,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: c7dd198bef78c9e41b725e523cf9c46a, type: 2}
+  - {fileID: 10302, guid: 0000000000000000f000000000000000, type: 0}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0

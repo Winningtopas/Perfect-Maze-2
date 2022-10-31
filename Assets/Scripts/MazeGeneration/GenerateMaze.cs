@@ -14,6 +14,7 @@ public class GenerateMaze : MonoBehaviour
 
     [SerializeField]
     private List<Cell> cells = new List<Cell>();
+    private List<Cell> groundCells = new List<Cell>();
 
     // Start is called before the first frame update
     void Start()
@@ -46,7 +47,12 @@ public class GenerateMaze : MonoBehaviour
                 {
                     //GameObject Cell = Instantiate(cellPrefab, new Vector3(x, y, z), transform.rotation, Floor.transform);
                     Cell newCel = new Cell();
-                    newCel.position = new Vector3(x, y, z);
+                    newCel.groundPosition = new Vector3(x, y, z);
+                    if (x != 3 || y == 3)
+                    {
+                        groundCells.Add(newCel);
+                        newCel.ground = true;
+                    }
                     cells.Add(newCel);
                 }
             }
@@ -65,97 +71,91 @@ public class GenerateMaze : MonoBehaviour
         Mesh mesh = GetComponent<MeshFilter>().mesh;
         mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
 
-        List<Vector3> newVertices = new List<Vector3>();
+        List<Vector3> groundVertices = new List<Vector3>();
 
         for (int i = 0; i < cells.Count; i++)
         {
-            newVertices.Add(cells[i].position);
-            newVertices.Add(cells[i].position + Vector3.right);
-            newVertices.Add(cells[i].position + new Vector3(1f, 1f, 0f));
-            newVertices.Add(cells[i].position + Vector3.up);
+            if (cells[i].ground)
+            {
+                Vector3 dimensions = cells[i].groundDimension;
+                for (int j = 1; j <= 3; j++) // Use 24 vertices instead of 8 on a cell so the lighting gets rendered correctly.
+                {
+                    groundVertices.Add(cells[i].groundPosition);
+                    groundVertices.Add(cells[i].groundPosition + new Vector3(1f * dimensions.x, 0f * dimensions.y, 0f * dimensions.z));
+                    groundVertices.Add(cells[i].groundPosition + new Vector3(1f * dimensions.x, 1f * dimensions.y, 0f * dimensions.z));
+                    groundVertices.Add(cells[i].groundPosition + new Vector3(0f * dimensions.x, 1f * dimensions.y, 0f * dimensions.z));
 
-            newVertices.Add(cells[i].position + new Vector3(0f, 1f, 1f));
-            newVertices.Add(cells[i].position + new Vector3(1f, 1f, 1f));
-            newVertices.Add(cells[i].position + new Vector3(1f, 0f, 1f));
-            newVertices.Add(cells[i].position + Vector3.forward);
-
-            newVertices.Add(cells[i].position);
-            newVertices.Add(cells[i].position + Vector3.right);
-            newVertices.Add(cells[i].position + new Vector3(1f, 1f, 0f));
-            newVertices.Add(cells[i].position + Vector3.up);
-
-            newVertices.Add(cells[i].position + new Vector3(0f, 1f, 1f));
-            newVertices.Add(cells[i].position + new Vector3(1f, 1f, 1f));
-            newVertices.Add(cells[i].position + new Vector3(1f, 0f, 1f));
-            newVertices.Add(cells[i].position + Vector3.forward);
-
-            newVertices.Add(cells[i].position);
-            newVertices.Add(cells[i].position + Vector3.right);
-            newVertices.Add(cells[i].position + new Vector3(1f, 1f, 0f));
-            newVertices.Add(cells[i].position + Vector3.up);
-
-            newVertices.Add(cells[i].position + new Vector3(0f, 1f, 1f));
-            newVertices.Add(cells[i].position + new Vector3(1f, 1f, 1f));
-            newVertices.Add(cells[i].position + new Vector3(1f, 0f, 1f));
-            newVertices.Add(cells[i].position + Vector3.forward);
+                    groundVertices.Add(cells[i].groundPosition + new Vector3(0f * dimensions.x, 1f * dimensions.y, 1f * dimensions.z));
+                    groundVertices.Add(cells[i].groundPosition + new Vector3(1f * dimensions.x, 1f * dimensions.y, 1f * dimensions.z));
+                    groundVertices.Add(cells[i].groundPosition + new Vector3(1f * dimensions.x, 0f * dimensions.y, 1f * dimensions.z));
+                    groundVertices.Add(cells[i].groundPosition + new Vector3(0f * dimensions.x, 0f * dimensions.y, 1f * dimensions.z));
+                }
+            }
         }
 
-        mesh.vertices = newVertices.ToArray();
+        mesh.vertices = groundVertices.ToArray();
 
-        List<int> newTriangles = new List<int>();
+        List<int> groundTriangles = new List<int>();
+
+        int compensate = 0; // This value is used to compensate for empty vertices. This allows us to have empty cells.
 
         for (int i = 0; i < cells.Count; i++)
         {
-            // Front Quad
-            newTriangles.Add(i * 24); // BottomLeftVertex
-            newTriangles.Add(i * 24 + 2); // TopLeftVertex
-            newTriangles.Add(i * 24 + 1); // BottomRightVertex
-            newTriangles.Add(i * 24); // BottomRightVertex
-            newTriangles.Add(i * 24 + 3); // TopLeftVertex
-            newTriangles.Add(i * 24 + 2); // TopRightVertex
+            if (cells[i].ground)
+            {
+                // Front Quad
+                groundTriangles.Add((i - compensate) * 24); // BottomLeftVertex
+                groundTriangles.Add((i - compensate) * 24 + 2); // TopLeftVertex
+                groundTriangles.Add((i - compensate) * 24 + 1); // BottomRightVertex
+                groundTriangles.Add((i - compensate) * 24); // BottomRightVertex
+                groundTriangles.Add((i - compensate) * 24 + 3); // TopLeftVertex
+                groundTriangles.Add((i - compensate) * 24 + 2); // TopRightVertex
 
-            // Top Quad
-            newTriangles.Add(i * 24 + 10); // BottomLeftVertex
-            newTriangles.Add(i * 24 + 11); // TopLeftVertex
-            newTriangles.Add(i * 24 + 12); // BottomRightVertex
-            newTriangles.Add(i * 24 + 10); // BottomRightVertex
-            newTriangles.Add(i * 24 + 12); // TopLeftVertex
-            newTriangles.Add(i * 24 + 13); // TopRightVertex
+                // Top Quad
+                groundTriangles.Add((i - compensate) * 24 + 10); // BottomLeftVertex
+                groundTriangles.Add((i - compensate) * 24 + 11); // TopLeftVertex
+                groundTriangles.Add((i - compensate) * 24 + 12); // BottomRightVertex
+                groundTriangles.Add((i - compensate) * 24 + 10); // BottomRightVertex
+                groundTriangles.Add((i - compensate) * 24 + 12); // TopLeftVertex
+                groundTriangles.Add((i - compensate) * 24 + 13); // TopRightVertex
 
-            // Right Quad
-            newTriangles.Add(i * 24 + 9); // BottomLeftVertex
-            newTriangles.Add(i * 24 + 18); // TopLeftVertex
-            newTriangles.Add(i * 24 + 5); // BottomRightVertex
-            newTriangles.Add(i * 24 + 9); // BottomRightVertex
-            newTriangles.Add(i * 24 + 5); // TopLeftVertex
-            newTriangles.Add(i * 24 + 6); // TopRightVertex
+                // Right Quad
+                groundTriangles.Add((i - compensate) * 24 + 9); // BottomLeftVertex
+                groundTriangles.Add((i - compensate) * 24 + 18); // TopLeftVertex
+                groundTriangles.Add((i - compensate) * 24 + 5); // BottomRightVertex
+                groundTriangles.Add((i - compensate) * 24 + 9); // BottomRightVertex
+                groundTriangles.Add((i - compensate) * 24 + 5); // TopLeftVertex
+                groundTriangles.Add((i - compensate) * 24 + 6); // TopRightVertex
 
-            // Left Quad
-            newTriangles.Add(i * 24 + 8); // BottomLeftVertex
-            newTriangles.Add(i * 24 + 7); // TopLeftVertex
-            newTriangles.Add(i * 24 + 20); // BottomRightVertex
-            newTriangles.Add(i * 24 + 8); // BottomRightVertex
-            newTriangles.Add(i * 24 + 20); // TopLeftVertex
-            newTriangles.Add(i * 24 + 19); // TopRightVertex
+                // Left Quad
+                groundTriangles.Add((i - compensate) * 24 + 8); // BottomLeftVertex
+                groundTriangles.Add((i - compensate) * 24 + 7); // TopLeftVertex
+                groundTriangles.Add((i - compensate) * 24 + 20); // BottomRightVertex
+                groundTriangles.Add((i - compensate) * 24 + 8); // BottomRightVertex
+                groundTriangles.Add((i - compensate) * 24 + 20); // TopLeftVertex
+                groundTriangles.Add((i - compensate) * 24 + 19); // TopRightVertex
 
-            // Back Quad
-            newTriangles.Add(i * 24 + 21); // BottomLeftVertex
-            newTriangles.Add(i * 24 + 20); // TopLeftVertex
-            newTriangles.Add(i * 24 + 15); // BottomRightVertex
-            newTriangles.Add(i * 24 + 21); // BottomRightVertex
-            newTriangles.Add(i * 24 + 15); // TopLeftVertex
-            newTriangles.Add(i * 24 + 14); // TopRightVertex
+                // Back Quad
+                groundTriangles.Add((i - compensate) * 24 + 21); // BottomLeftVertex
+                groundTriangles.Add((i - compensate) * 24 + 20); // TopLeftVertex
+                groundTriangles.Add((i - compensate) * 24 + 15); // BottomRightVertex
+                groundTriangles.Add((i - compensate) * 24 + 21); // BottomRightVertex
+                groundTriangles.Add((i - compensate) * 24 + 15); // TopLeftVertex
+                groundTriangles.Add((i - compensate) * 24 + 14); // TopRightVertex
 
-            // Bottom Quad
-            newTriangles.Add(i * 24 + 16); // BottomLeftVertex
-            newTriangles.Add(i * 24 + 22); // TopLeftVertex
-            newTriangles.Add(i * 24 + 23); // BottomRightVertex
-            newTriangles.Add(i * 24 + 16); // BottomRightVertex
-            newTriangles.Add(i * 24 + 17); // TopLeftVertex
-            newTriangles.Add(i * 24 + 22); // TopRightVertex
+                // Bottom Quad
+                groundTriangles.Add((i - compensate) * 24 + 16); // BottomLeftVertex
+                groundTriangles.Add((i - compensate) * 24 + 22); // TopLeftVertex
+                groundTriangles.Add((i - compensate) * 24 + 23); // BottomRightVertex
+                groundTriangles.Add((i - compensate) * 24 + 16); // BottomRightVertex
+                groundTriangles.Add((i - compensate) * 24 + 17); // TopLeftVertex
+                groundTriangles.Add((i - compensate) * 24 + 22); // TopRightVertex
+            }
+            else
+                compensate++;
         }
 
-        mesh.triangles = newTriangles.ToArray();
+        mesh.triangles = groundTriangles.ToArray();
         mesh.Optimize();
         mesh.RecalculateNormals();
     }
