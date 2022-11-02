@@ -2,84 +2,205 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class GenerateMaze : MonoBehaviour
+public class MazeManager : MonoBehaviour
 {
     // Maze information
     [SerializeField]
-    private int mazeSizeX, mazeSizeY, mazeSizeZ;
-
-    // Cell information
+    private Vector3 mazeDimension;
+    private int currentFloor;
     [SerializeField]
-    private GameObject cellPrefab;
+    private List<int> cellAmountByFloor = new List<int>();
+    private Dictionary<int, Vector3> floorDimensions = new Dictionary<int, Vector3>();
 
+    public static List<Cell> cells = new List<Cell>();
     [SerializeField]
-    private List<Cell> cells = new List<Cell>();
-    private List<Cell> groundCells = new List<Cell>();
+    public List<Cell> unvisitedCells = new List<Cell>();
+    private Cell previousCell, currentCell, nextCell, endCell;
+
+    // Different generation modes
+    [SerializeField]
+    private bool isPyramid;
 
     // Start is called before the first frame update
     void Start()
     {
-        SpawnMaze();
-        DrawMesh();
+        SpawnFloorGrid();
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-
-    }
-
-    // This functtion starts the generation of a new maze, the function can be called by a UI button.
     public void SpawnMaze()
     {
         DestroyMaze();
-        GameObject Floor;
+        SpawnFloorGrid();
+    }
 
-        for (int y = 0; y < mazeSizeY; y++)
+    // This functtion starts the generation of a new maze, the function can be called by a UI button.
+    public void SpawnFloorGrid()
+    {
+        GameObject Floor;
+        int floorCellAmount = 0;
+        Vector3 sizeModifiers = Vector3.zero;
+        Vector3 floorSize = mazeDimension;
+
+        for (int y = 0; y < floorSize.y; y++)
         {
             Floor = new GameObject();
             Floor.name = "Floor" + y;
             Floor.transform.SetParent(transform);
 
-            for (int x = 0; x < mazeSizeX; x++)
-            {
-                for (int z = 0; z < mazeSizeZ; z++)
-                {
-                    //GameObject Cell = Instantiate(cellPrefab, new Vector3(x, y, z), transform.rotation, Floor.transform);
-                    Cell newCel = new Cell();
-                    newCel.groundPosition = new Vector3(x, y, z);
+            if (isPyramid)
+                sizeModifiers = new Vector3(currentFloor, 0f, currentFloor);
 
-                    for (int i = 0; i < newCel.positions.Length; i++)
+            floorSize = mazeDimension - sizeModifiers;
+            floorDimensions.Add(currentFloor, floorSize);
+
+            for (int x = 0; x < floorSize.x; x++)
+            {
+                for (int z = 0; z < floorSize.z; z++)
+                {
+                    Cell newCel = new Cell();
+
+                    for (int i = 0; i < newCel.positions.Length; i++) // Sets the positon for the ground and all walls
                     {
                         newCel.positions[i] = newCel.positions[i] + new Vector3(x, y, z);
                     }
 
-                    // The dividers are the ground and walls of a maze cell
-                    newCel.dividers[0] = true;
-                    newCel.dividers[1] = true;
-                    newCel.dividers[2] = true;
-                    newCel.dividers[3] = true;
-                    newCel.dividers[4] = true;
-                    if (x > 100 && x < 200)
-                    {
-                        newCel.dividers[0] = false;
-                        newCel.dividers[1] = false;
-                        newCel.dividers[2] = false;
-                        newCel.dividers[3] = false;
-                        newCel.dividers[4] = false;
-                    }
-
-
                     cells.Add(newCel);
+                    newCel.index = cells.IndexOf(newCel);
+
+                    AssignCellNeighboursIndices(newCel, (int)floorSize.x, (int)floorSize.z, x);
+
+                    newCel.OnCreation();
+                    floorCellAmount++;
+                }
+            }
+
+            // Add the amount of cells of a floor to a list, so cells can easily be found back
+            cellAmountByFloor.Add(floorCellAmount);
+            floorCellAmount = 0;
+            currentFloor++;
+        }
+
+        AssignCellNeighbourCells();
+        StartCoroutine(GenerateMaze());
+    }
+
+    private void AssignCellNeighboursIndices(Cell newCel, int floorSizeX, int floorSizeZ, int x)
+    {
+        // left neighbour
+        if (newCel.index == floorSizeX * x)
+            newCel.neighbourCellIndex[0] = -1;
+        else
+            newCel.neighbourCellIndex[0] = newCel.index - 1;
+
+        // right neighbour
+        if (newCel.index - ((int)mazeDimension.x * (x + 1) - 1) == 0)
+            newCel.neighbourCellIndex[1] = -1;
+        else
+            newCel.neighbourCellIndex[1] = newCel.index + 1;
+
+        // top neighbour
+        if (newCel.index + (int)mazeDimension.x >= floorSizeX * floorSizeX)
+            newCel.neighbourCellIndex[2] = -1;
+        else
+            newCel.neighbourCellIndex[2] = newCel.index + (int)mazeDimension.x;
+
+        // bottom neighbour
+        if (newCel.index - (int)mazeDimension.x < 0)
+            newCel.neighbourCellIndex[3] = -1;
+        else
+            newCel.neighbourCellIndex[3] = newCel.index - (int)mazeDimension.x;
+    }
+
+    private void AssignCellNeighbourCells()
+    {
+        for (int i = 0; i < cells.Count; i++)
+        {
+            for (int j = 0; j < cells[i].neighbourCellIndex.Length; j++)
+            {
+                if (cells[i].neighbourCellIndex[j] != -1)
+                {
+                    cells[i].availableNeighbourCells.Add(cells[cells[i].neighbourCellIndex[j]]);
                 }
             }
         }
+    }
+
+    private IEnumerator GenerateMaze()
+    {
+        int startCellIndex = 0;
+        int visitedCellAmount = 0;
+
+        for (int y = 0; y < mazeDimension.y; y++)
+        {
+            startCellIndex = Random.Range(0, cellAmountByFloor[y]) + visitedCellAmount;
+
+            currentCell = cells[startCellIndex];
+            currentCell.isStartCell = true;
+            visitedCellAmount += cellAmountByFloor[y];
+
+            while (true)
+            {
+                nextCell = currentCell.GetRandomCellNeighbour();
+                if (nextCell != null && !nextCell.visited) // If there is a neighbouring cell that's unvisited
+                {
+                    nextCell.visited = true;
+
+                    if (currentCell.unvisitedNeighbourCells > 0)
+                        unvisitedCells.Add(currentCell);
+
+                    RemoveWalls(currentCell, nextCell);
+                    currentCell = nextCell;
+                }
+                else if (unvisitedCells.Count > 0)
+                {
+                    currentCell = unvisitedCells[unvisitedCells.Count - 1];
+                    unvisitedCells.RemoveAt(unvisitedCells.Count - 1);
+                }
+                else // if every cell has been visited
+                {
+                    endCell = currentCell;
+                    currentCell.isEndCell = true;
+                    DrawMesh();
+                    break;
+                }
+            }
+            if (y == mazeDimension.y - 1)
+                yield break;
+        }
+        yield return null;
     }
 
     // This function destroys the current maze.
     private void DestroyMaze()
     {
 
+    }
+
+    private void RemoveWalls(Cell a, Cell b)
+    {
+        Vector3 positionDifference = a.positions[0] - b.positions[0];
+
+        if (positionDifference.x == 1)
+        {
+            a.dividers[2] = false;
+            b.dividers[4] = false;
+        }
+        else if (positionDifference.x == -1)
+        {
+            a.dividers[4] = false;
+            b.dividers[2] = false;
+        }
+
+        if (positionDifference.z == 1)
+        {
+            a.dividers[1] = false;
+            b.dividers[3] = false;
+        }
+        else if (positionDifference.z == -1)
+        {
+            a.dividers[3] = false;
+            b.dividers[1] = false;
+        }
     }
 
     private List<Vector3> CreateVertices()
