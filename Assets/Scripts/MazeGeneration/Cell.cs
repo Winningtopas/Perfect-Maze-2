@@ -20,9 +20,9 @@ public class Cell
     public int unvisitedNeighbourCells = 4;
     public int amountOfcellsOnPreviousFloors;
 
-    public void OnCreation()
+    public void OnCreation(int x, int z)
     {
-        //Debug.Log("Index: " + index + " Neighbours: " + neighbourCellIndex[0] + " " + neighbourCellIndex[1] + " " + neighbourCellIndex[2] + " " + neighbourCellIndex[3]);
+        Debug.Log("Index: " + index + " Neighbours: " + neighbourCellIndex[0] + " " + neighbourCellIndex[1] + " " + neighbourCellIndex[2] + " " + neighbourCellIndex[3] + " x: " + x + "  z:" + z);
     }
 
     public Cell GetRandomCellNeighbour()
@@ -42,6 +42,10 @@ public class Cell
             unvisitedNeighbourCells--;
 
             Cell newNeighbourCell = availableNeighbourCells[r];
+
+            // Remove the current cell from the neighbours list so it doesn't backtrack
+            newNeighbourCell.availableNeighbourCells.Remove(this);
+
             availableNeighbourCells.Remove(newNeighbourCell);
             return newNeighbourCell;
         }
