@@ -90,7 +90,7 @@ public class MazeManager : MonoBehaviour
         for (int i = y; i > 0; i--)
         {
             if (y > 0)
-                previousFloorCellAmount += cellAmountByFloor[y - 1];
+                previousFloorCellAmount += cellAmountByFloor[y - i];
         }
 
         // left neighbour
@@ -106,7 +106,7 @@ public class MazeManager : MonoBehaviour
             newCel.neighbourCellIndex[1] = newCel.index + 1;
 
         // top neighbour
-        if (newCel.index + floorSizeZ >= floorSizeX * floorSizeZ * (y + 1))
+        if (newCel.index >= previousFloorCellAmount + floorSizeZ * floorSizeX - floorSizeZ)
             newCel.neighbourCellIndex[2] = -1;
         else
             newCel.neighbourCellIndex[2] = newCel.index + floorSizeZ;
@@ -153,7 +153,6 @@ public class MazeManager : MonoBehaviour
 
                 if (nextCell != null && !nextCell.visited) // If there is a neighbouring cell that's unvisited
                 {
-                    Debug.Log("currentcell: " + currentCell.index + " nextcell: " + nextCell.index);
                     nextCell.visited = true;
 
                     if (currentCell.unvisitedNeighbourCells > 0)
@@ -170,7 +169,6 @@ public class MazeManager : MonoBehaviour
                 }
                 else // If every cell has been visited
                 {
-                    Debug.Log("Last cell of floor: " + currentCell.index);
                     endCell = currentCell;
                     currentCell.isEndCell = true;
 
@@ -194,8 +192,6 @@ public class MazeManager : MonoBehaviour
 
     private void RemoveWalls(Cell a, Cell b)
     {
-        Debug.Log("a: " + a.index + " b: " + b.index);
-
         Vector3 positionDifference = a.positions[0] - b.positions[0];
 
         if (positionDifference.x == 1)
