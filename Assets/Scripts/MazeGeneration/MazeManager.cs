@@ -67,9 +67,9 @@ public class MazeManager : MonoBehaviour
                     cells.Add(newCel);
                     newCel.index = cells.IndexOf(newCel);
 
-                    AssignCellNeighboursIndices(newCel, (int)floorSize.x, (int)floorSize.z, x, z);
+                    AssignCellNeighboursIndices(newCel, (int)floorSize.x, (int)floorSize.z, x, z, y);
 
-                    newCel.OnCreation(x, z);
+                    newCel.OnCreation(x, z, y);
                     floorCellAmount++;
                 }
             }
@@ -84,31 +84,38 @@ public class MazeManager : MonoBehaviour
         StartCoroutine(GenerateMaze());
     }
 
-    private void AssignCellNeighboursIndices(Cell newCel, int floorSizeX, int floorSizeZ, int x, int z)
+    private void AssignCellNeighboursIndices(Cell newCel, int floorSizeX, int floorSizeZ, int x, int z, int y)
     {
+        int previousFloorCellAmount = 0;
+        for (int i = y; i > 0; i--)
+        {
+            if (y > 0)
+                previousFloorCellAmount += cellAmountByFloor[y - 1];
+        }
+
         // left neighbour
-        if (newCel.index == floorSizeZ * x)
+        if (newCel.index == floorSizeZ * x + previousFloorCellAmount)
             newCel.neighbourCellIndex[0] = -1;
         else
             newCel.neighbourCellIndex[0] = newCel.index - 1;
 
         // right neighbour
-        if (newCel.index == floorSizeZ * (x + 1) - 1 || newCel.index + 1 == floorSizeX * floorSizeZ)
+        if (newCel.index == floorSizeZ * (x + 1) - 1 + previousFloorCellAmount || newCel.index + 1 + previousFloorCellAmount == floorSizeX * floorSizeZ * (int)mazeDimension.y)
             newCel.neighbourCellIndex[1] = -1;
         else
             newCel.neighbourCellIndex[1] = newCel.index + 1;
 
         // top neighbour
-        if (newCel.index + floorSizeZ >= floorSizeX * floorSizeZ)
+        if (newCel.index + floorSizeZ >= floorSizeX * floorSizeZ * (y + 1))
             newCel.neighbourCellIndex[2] = -1;
         else
-            newCel.neighbourCellIndex[2] = newCel.index + (int)mazeDimension.z;
+            newCel.neighbourCellIndex[2] = newCel.index + floorSizeZ;
 
         // bottom neighbour
-        if (newCel.index - floorSizeZ < 0)
+        if (newCel.index - floorSizeZ - previousFloorCellAmount < 0)
             newCel.neighbourCellIndex[3] = -1;
         else
-            newCel.neighbourCellIndex[3] = newCel.index - (int)mazeDimension.z;
+            newCel.neighbourCellIndex[3] = newCel.index - floorSizeZ;
     }
 
     private void AssignCellNeighbourCells()
@@ -143,7 +150,7 @@ public class MazeManager : MonoBehaviour
             while (true)
             {
                 nextCell = currentCell.GetRandomCellNeighbour();
-                //if (nextCell != null && !nextCell.visited) // If there is a neighbouring cell that's unvisited
+
                 if (nextCell != null && !nextCell.visited) // If there is a neighbouring cell that's unvisited
                 {
                     Debug.Log("currentcell: " + currentCell.index + " nextcell: " + nextCell.index);
@@ -153,7 +160,7 @@ public class MazeManager : MonoBehaviour
                         unvisitedCells.Add(currentCell);
 
                     RemoveWalls(currentCell, nextCell);
-                    
+
                     currentCell = nextCell;
                 }
                 else if (unvisitedCells.Count > 0)
@@ -161,11 +168,15 @@ public class MazeManager : MonoBehaviour
                     currentCell = unvisitedCells[unvisitedCells.Count - 1];
                     unvisitedCells.RemoveAt(unvisitedCells.Count - 1);
                 }
-                else // if every cell has been visited
+                else // If every cell has been visited
                 {
+                    Debug.Log("Last cell of floor: " + currentCell.index);
                     endCell = currentCell;
                     currentCell.isEndCell = true;
-                    DrawMesh();
+
+                    // Draw the mesh if all the floors have gotten a maze layout
+                    if (y == mazeDimension.y - 1)
+                        DrawMesh();
                     break;
                 }
             }
@@ -213,7 +224,7 @@ public class MazeManager : MonoBehaviour
     private List<Vector3> CreateVertices()
     {
         List<Vector3> newVertices = new List<Vector3>();
-
+        int number = 0;
         for (int i = 0; i < cells.Count; i++)
         {
             for (int j = 0; j < cells[i].dividers.Length; j++)
@@ -232,10 +243,12 @@ public class MazeManager : MonoBehaviour
                         newVertices.Add(cells[i].positions[j] + new Vector3(1f * dimensions.x, 1f * dimensions.y, 1f * dimensions.z));
                         newVertices.Add(cells[i].positions[j] + new Vector3(1f * dimensions.x, 0f * dimensions.y, 1f * dimensions.z));
                         newVertices.Add(cells[i].positions[j] + new Vector3(0f * dimensions.x, 0f * dimensions.y, 1f * dimensions.z));
+                        number += 8;
                     }
                 }
             }
         }
+        Debug.Log("number of vertices: " + number);
         return newVertices;
     }
 
@@ -310,8 +323,8 @@ public class MazeManager : MonoBehaviour
         Mesh mesh = GetComponent<MeshFilter>().mesh;
         mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
 
-        List<Vector3> groundVertices = CreateVertices();
-        mesh.vertices = groundVertices.ToArray();
+        List<Vector3> vertices = CreateVertices();
+        mesh.vertices = vertices.ToArray();
 
         List<int> triangles = CreateTriangles();
         mesh.triangles = triangles.ToArray();
