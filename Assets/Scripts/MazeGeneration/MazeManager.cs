@@ -8,6 +8,9 @@ public class MazeManager : MonoBehaviour
     [SerializeField]
     private Vector3 mazeDimension;
     private int currentFloor;
+
+    [SerializeField]
+    private int cellAmount;
     [SerializeField]
     private List<int> cellAmountByFloor = new List<int>();
     private Dictionary<int, Vector3> floorDimensions = new Dictionary<int, Vector3>();
@@ -40,6 +43,26 @@ public class MazeManager : MonoBehaviour
         int floorCellAmount = 0;
         Vector3 sizeModifiers = Vector3.zero;
         Vector3 floorSize = mazeDimension;
+
+        // Give the pyramid a height depending on the base
+        if (isPyramid)
+        {
+            if (mazeDimension.x < mazeDimension.z)
+                mazeDimension.y = mazeDimension.x;
+            else
+                mazeDimension.y = mazeDimension.z;
+        }
+
+        for (int i = 0; i < floorSize.y; i++)
+        {
+            if (isPyramid)
+                sizeModifiers = new Vector3(i, 0f, i);
+            floorSize = mazeDimension - sizeModifiers;
+            cellAmount += (int)floorSize.x * (int)floorSize.z;
+        }
+
+        sizeModifiers = Vector3.zero;
+        floorSize = mazeDimension;
 
         for (int y = 0; y < floorSize.y; y++)
         {
@@ -116,13 +139,29 @@ public class MazeManager : MonoBehaviour
             newCel.neighbourCellIndex[3] = -1;
         else
             newCel.neighbourCellIndex[3] = newCel.index - floorSizeZ;
+
+        // above neighbour
+        if (isPyramid)
+        {
+            if ((newCel.index - previousFloorCellAmount + 1) % (mazeDimension.y - y) == 0 || newCel.index >= Mathf.Ceil((floorSizeX - 1) * (floorSizeZ - 1) + previousFloorCellAmount + mazeDimension.y - (y + 1)))
+                newCel.neighbourCellIndex[4] = -1;
+            else
+                newCel.neighbourCellIndex[4] = newCel.index + floorSizeX * floorSizeZ - x;
+        }
+        else
+        {
+            if (newCel.index + floorSizeX * floorSizeZ >= floorSizeX * floorSizeZ * mazeDimension.y)
+                newCel.neighbourCellIndex[4] = -1;
+            else
+                newCel.neighbourCellIndex[4] = newCel.index + floorSizeX * floorSizeZ;
+        }
     }
 
     private void AssignCellNeighbourCells()
     {
         for (int i = 0; i < cells.Count; i++)
         {
-            for (int j = 0; j < cells[i].neighbourCellIndex.Length; j++)
+            for (int j = 0; j < 4; j++) // Only do this for the left, right, top and bottom neighbour, not the above and below nieghbours
             {
                 if (cells[i].neighbourCellIndex[j] != -1)
                 {

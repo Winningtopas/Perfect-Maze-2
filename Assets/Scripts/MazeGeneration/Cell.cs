@@ -15,14 +15,14 @@ public class Cell
 
     // Neighbour cell informatioon
 
-    public int[] neighbourCellIndex = new int[] { -1, -1, -1, -1 };
+    public int[] neighbourCellIndex = new int[] { -1, -1, -1, -1, -1}; // left, right, top, bottom, above
     public List<Cell> availableNeighbourCells = new List<Cell>();
     public int unvisitedNeighbourCells = 4;
     public int amountOfcellsOnPreviousFloors;
 
     public void OnCreation(int x, int z, int y)
     {
-        Debug.Log("Index: " + index + " Neighbours: " + neighbourCellIndex[0] + " " + neighbourCellIndex[1] + " " + neighbourCellIndex[2] + " " + neighbourCellIndex[3] + " x: " + x + "  z:" + z + " y: " + y);
+        Debug.Log("Index: " + index + " Neighbours: " + neighbourCellIndex[0] + " " + neighbourCellIndex[1] + " " + neighbourCellIndex[2] + " " + neighbourCellIndex[3] + " " + neighbourCellIndex[4] + " x: " + x + "  z:" + z + " y: " + y);
     }
 
     public Cell GetRandomCellNeighbour()

@@ -574,9 +574,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 397c2bfcf56014c4892bdf8c5a858a74, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  mazeDimension: {x: 4, y: 4, z: 45}
+  mazeDimension: {x: 5, y: 1, z: 5}
+  cellAmount: 0
   cellAmountByFloor: 
-  isPyramid: 1
+  isPyramid: 0
 --- !u!4 &2020928719
 Transform:
   m_ObjectHideFlags: 0
