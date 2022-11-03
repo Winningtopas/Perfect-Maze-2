@@ -24,6 +24,12 @@ public class MazeManager : MonoBehaviour
     [SerializeField]
     private bool isPyramid;
 
+    // User interface
+
+    [Header("UI references")]
+    [SerializeField]
+    private AdjustSliderValue mazeWidthSliderText, mazeHeightSliderText, mazeLengthSliderText;
+
     // Camera information
     [SerializeField]
     private Transform topDownCamera, frontCamera, firstPersonCamera;
@@ -31,18 +37,25 @@ public class MazeManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        SpawnFloorGrid();
-        PositionCameras();
+        //SpawnMaze();
     }
 
     public void SpawnMaze()
     {
         DestroyMaze();
+        mazeDimension.x = mazeWidthSliderText.sliderValue;
+        mazeDimension.y = mazeHeightSliderText.sliderValue;
+        mazeDimension.z = mazeLengthSliderText.sliderValue;
         SpawnFloorGrid();
+        PositionCameras();
+    }
+    public void PyramidToggle()
+    {
+        isPyramid = !isPyramid;
     }
 
     // This function starts the generation of a new maze, the function can be called by a UI button.
-    public void SpawnFloorGrid()
+    private void SpawnFloorGrid()
     {
         GameObject Floor;
         int floorCellAmount = 0;
