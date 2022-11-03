@@ -24,10 +24,15 @@ public class MazeManager : MonoBehaviour
     [SerializeField]
     private bool isPyramid;
 
+    // Camera information
+    [SerializeField]
+    private Transform topDownCamera, frontCamera, firstPersonCamera;
+
     // Start is called before the first frame update
     void Start()
     {
         SpawnFloorGrid();
+        PositionCameras();
     }
 
     public void SpawnMaze()
@@ -36,7 +41,7 @@ public class MazeManager : MonoBehaviour
         SpawnFloorGrid();
     }
 
-    // This functtion starts the generation of a new maze, the function can be called by a UI button.
+    // This function starts the generation of a new maze, the function can be called by a UI button.
     public void SpawnFloorGrid()
     {
         GameObject Floor;
@@ -223,7 +228,6 @@ public class MazeManager : MonoBehaviour
         yield return null;
     }
 
-    // This function destroys the current maze.
     private void DestroyMaze()
     {
 
@@ -366,5 +370,18 @@ public class MazeManager : MonoBehaviour
 
         mesh.Optimize();
         mesh.RecalculateNormals();
+    }
+
+    private void PositionCameras()
+    {
+        float x = mazeDimension.x / 2f;
+        float z = mazeDimension.z / 2f;
+        float largestBetweenXAndZ = mazeDimension.x;
+
+        if (x > z)
+            largestBetweenXAndZ = mazeDimension.x;
+        else
+            largestBetweenXAndZ = mazeDimension.z;
+        topDownCamera.transform.position = new Vector3(x, mazeDimension.y + largestBetweenXAndZ, z);
     }
 }
