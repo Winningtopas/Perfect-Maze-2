@@ -13,12 +13,12 @@ public class MazeManager : MonoBehaviour
     private int cellAmount;
     [SerializeField]
     private List<int> cellAmountByFloor = new List<int>();
-    private Dictionary<int, Vector3> floorDimensions = new Dictionary<int, Vector3>();
 
     public static List<Cell> cells = new List<Cell>();
     [SerializeField]
     public List<Cell> unvisitedCells = new List<Cell>();
     private Cell previousCell, currentCell, nextCell, endCell;
+    private bool isGenerating;
 
     // Different generation modes
     [SerializeField]
@@ -34,14 +34,46 @@ public class MazeManager : MonoBehaviour
     [SerializeField]
     private Transform topDownCamera, frontCamera, firstPersonCamera;
 
+    // Animations
+
+    [SerializeField]
+    private Animator[] curtainAnimators;
+    private float curtainOpenTime;
+
     // Start is called before the first frame update
     void Start()
     {
-        //SpawnMaze();
+        // All the animators have the same animations, so I only need to check one animator for the clip lengths
+        AnimationClip[] clips = curtainAnimators[0].runtimeAnimatorController.animationClips;
+        foreach (AnimationClip clip in clips)
+        {
+            switch (clip.name)
+            {
+                case "curtainsOpen":
+                    curtainOpenTime = clip.length;
+                    break;
+            }
+        }
     }
 
     public void SpawnMaze()
     {
+        if (!isGenerating)
+            StartCoroutine(ResetMaze());
+        isGenerating = true;
+    }
+
+    public IEnumerator ResetMaze()
+    {
+        currentFloor = 0;
+
+        curtainAnimators[0].Play("curtainsClose");
+        curtainAnimators[1].Play("curtainsClose");
+        curtainAnimators[2].Play("curtainsBigClose");
+
+        // the open and close animation have the same time, since it's the same animation but reversed
+        yield return new WaitForSeconds(curtainOpenTime);
+
         DestroyMaze();
         if (isPyramid)
         {
@@ -97,7 +129,6 @@ public class MazeManager : MonoBehaviour
                 sizeModifiers = new Vector3(currentFloor, 0f, currentFloor);
 
             floorSize = mazeDimension - sizeModifiers;
-            floorDimensions.Add(currentFloor, floorSize);
 
             for (int x = 0; x < floorSize.x; x++)
             {
@@ -236,7 +267,9 @@ public class MazeManager : MonoBehaviour
 
                     // Draw the mesh if all the floors have gotten a maze layout
                     if (y == mazeDimension.y - 1)
-                        DrawMesh();
+                    {
+                        StartCoroutine(FinishMazeGeneration());
+                    }
                     break;
                 }
             }
@@ -410,5 +443,18 @@ public class MazeManager : MonoBehaviour
 
         topDownCamera.transform.position = new Vector3(x, mazeDimension.y + largestBetweenXAndZ, z);
         frontCamera.transform.position = new Vector3(mazeDimension.x + largestBetweenZAndY, y, z);
+    }
+
+    private IEnumerator FinishMazeGeneration()
+    {
+        DrawMesh();
+
+        curtainAnimators[0].Play("curtainsOpen");
+        curtainAnimators[1].Play("curtainsOpen");
+        curtainAnimators[2].Play("curtainsBigOpen");
+
+        yield return new WaitForSeconds(curtainOpenTime);
+
+        isGenerating = false;
     }
 }
