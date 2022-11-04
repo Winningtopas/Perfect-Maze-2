@@ -22,7 +22,7 @@ public class Cell
 
     public void OnCreation(int x, int z, int y)
     {
-        Debug.Log("Index: " + index + " Neighbours: " + neighbourCellIndex[0] + " " + neighbourCellIndex[1] + " " + neighbourCellIndex[2] + " " + neighbourCellIndex[3] + " " + neighbourCellIndex[4] + " x: " + x + "  z:" + z + " y: " + y);
+        //Debug.Log("Index: " + index + " Neighbours: " + neighbourCellIndex[0] + " " + neighbourCellIndex[1] + " " + neighbourCellIndex[2] + " " + neighbourCellIndex[3] + " " + neighbourCellIndex[4] + " x: " + x + "  z:" + z + " y: " + y);
     }
 
     public Cell GetRandomCellNeighbour()

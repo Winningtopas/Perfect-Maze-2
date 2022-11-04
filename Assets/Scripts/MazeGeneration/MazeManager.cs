@@ -43,9 +43,19 @@ public class MazeManager : MonoBehaviour
     public void SpawnMaze()
     {
         DestroyMaze();
-        mazeDimension.x = mazeWidthSliderText.sliderValue;
-        mazeDimension.y = mazeHeightSliderText.sliderValue;
-        mazeDimension.z = mazeLengthSliderText.sliderValue;
+        if (isPyramid)
+        {
+            mazeDimension.x = 10;
+            mazeDimension.y = 10;
+            mazeDimension.z = 10;
+        }
+        else
+        {
+            mazeDimension.x = mazeWidthSliderText.sliderValue;
+            mazeDimension.y = mazeHeightSliderText.sliderValue;
+            mazeDimension.z = mazeLengthSliderText.sliderValue;
+        }
+
         SpawnFloorGrid();
         PositionCameras();
     }
@@ -57,7 +67,6 @@ public class MazeManager : MonoBehaviour
     // This function starts the generation of a new maze, the function can be called by a UI button.
     private void SpawnFloorGrid()
     {
-        GameObject Floor;
         int floorCellAmount = 0;
         Vector3 sizeModifiers = Vector3.zero;
         Vector3 floorSize = mazeDimension;
@@ -84,10 +93,6 @@ public class MazeManager : MonoBehaviour
 
         for (int y = 0; y < floorSize.y; y++)
         {
-            Floor = new GameObject();
-            Floor.name = "Floor" + y;
-            Floor.transform.SetParent(transform);
-
             if (isPyramid)
                 sizeModifiers = new Vector3(currentFloor, 0f, currentFloor);
 
@@ -243,7 +248,8 @@ public class MazeManager : MonoBehaviour
 
     private void DestroyMaze()
     {
-
+        cells.Clear();
+        GetComponent<MeshFilter>().mesh = null;
     }
 
     private void RemoveWalls(Cell a, Cell b)
@@ -300,7 +306,6 @@ public class MazeManager : MonoBehaviour
                 }
             }
         }
-        Debug.Log("number of vertices: " + number);
         return newVertices;
     }
 
@@ -388,13 +393,22 @@ public class MazeManager : MonoBehaviour
     private void PositionCameras()
     {
         float x = mazeDimension.x / 2f;
+        float y = mazeDimension.y / 2f;
         float z = mazeDimension.z / 2f;
         float largestBetweenXAndZ = mazeDimension.x;
+        float largestBetweenZAndY = mazeDimension.y;
 
         if (x > z)
             largestBetweenXAndZ = mazeDimension.x;
         else
             largestBetweenXAndZ = mazeDimension.z;
+
+        if (z > y)
+            largestBetweenZAndY = mazeDimension.z;
+        else
+            largestBetweenZAndY = mazeDimension.y;
+
         topDownCamera.transform.position = new Vector3(x, mazeDimension.y + largestBetweenXAndZ, z);
+        frontCamera.transform.position = new Vector3(mazeDimension.x + largestBetweenZAndY, y, z);
     }
 }
