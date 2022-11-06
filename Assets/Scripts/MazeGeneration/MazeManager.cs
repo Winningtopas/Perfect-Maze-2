@@ -407,17 +407,36 @@ public class MazeManager : MonoBehaviour
         return newTrianglesCoordinates;
     }
 
+
+    private Vector2[] CreateUVs(Vector3[] vertices)
+    {
+        Vector2[] newUvs = new Vector2[vertices.Length];
+
+        for (int i = 0; i < vertices.Length; i++)
+        {
+            newUvs[i] = new Vector2(vertices[i].x, vertices[i].z);
+        }
+
+        return newUvs;
+    }
+
     // Draw a maze mesh using the informations from the individual cells
     private void DrawMesh()
     {
         Mesh mesh = GetComponent<MeshFilter>().mesh;
         mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
 
-        List<Vector3> vertices = CreateVertices();
-        mesh.vertices = vertices.ToArray();
+        List<Vector3> verticesList = CreateVertices();
+        Vector3[] vertices = verticesList.ToArray();
+        mesh.vertices = vertices;
 
         List<int> triangles = CreateTriangles();
         mesh.triangles = triangles.ToArray();
+
+        Vector2[] uvs = CreateUVs(vertices);
+        Debug.Log(vertices.Length);
+        Debug.Log(uvs.Length);
+        mesh.uv = uvs;
 
         mesh.Optimize();
         mesh.RecalculateNormals();

@@ -1687,10 +1687,6 @@ MonoBehaviour:
   topDownCamera: {fileID: 1276273924}
   frontCamera: {fileID: 1448027191}
   firstPersonCamera: {fileID: 425926682}
-  curtains:
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
   curtainAnimators:
   - {fileID: 663212789}
   - {fileID: 1518169412}
@@ -1736,7 +1732,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: c7dd198bef78c9e41b725e523cf9c46a, type: 2}
+  - {fileID: 2100000, guid: 67daf37ff59454b42a41cab61b4e8b8b, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
