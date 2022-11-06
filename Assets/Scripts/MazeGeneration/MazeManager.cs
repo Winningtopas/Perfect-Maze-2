@@ -20,6 +20,10 @@ public class MazeManager : MonoBehaviour
     private Cell previousCell, currentCell, nextCell, endCell;
     private bool isGenerating;
 
+    // Start/End Cells
+
+    private List<int> startCellTriangles = new List<int>();
+
     // Different generation modes
     [SerializeField]
     private bool isPyramid;
@@ -54,6 +58,10 @@ public class MazeManager : MonoBehaviour
                     break;
             }
         }
+
+        if (!isGenerating)
+            StartCoroutine(ResetMaze());
+        isGenerating = true;
     }
 
     public void SpawnMaze()
@@ -282,6 +290,8 @@ public class MazeManager : MonoBehaviour
     private void DestroyMaze()
     {
         cells.Clear();
+        startCellTriangles.Clear();
+
         GetComponent<MeshFilter>().mesh = null;
     }
 
@@ -322,20 +332,25 @@ public class MazeManager : MonoBehaviour
             {
                 if (cells[i].dividers[j])
                 {
-                    Vector3 dimensions = cells[i].dimensions[j];
-                    for (int k = 1; k <= 3; k++) // Use 24 vertices instead of 8 on a cell so the lighting gets rendered correctly.
+                    if (cells[i].isStartCell && j == 0 && cells[i].positions[0].y != 0) { } // if the startcell is not on the ground, leave it empty so the fp camera can move through it.
+                    else
                     {
-                        newVertices.Add(cells[i].positions[j]);
-                        newVertices.Add(cells[i].positions[j] + new Vector3(1f * dimensions.x, 0f * dimensions.y, 0f * dimensions.z));
-                        newVertices.Add(cells[i].positions[j] + new Vector3(1f * dimensions.x, 1f * dimensions.y, 0f * dimensions.z));
-                        newVertices.Add(cells[i].positions[j] + new Vector3(0f * dimensions.x, 1f * dimensions.y, 0f * dimensions.z));
+                        Vector3 dimensions = cells[i].dimensions[j];
+                        for (int k = 1; k <= 3; k++) // Use 24 vertices instead of 8 on a cell so the lighting gets rendered correctly.
+                        {
+                            newVertices.Add(cells[i].positions[j]);
+                            newVertices.Add(cells[i].positions[j] + new Vector3(1f * dimensions.x, 0f * dimensions.y, 0f * dimensions.z));
+                            newVertices.Add(cells[i].positions[j] + new Vector3(1f * dimensions.x, 1f * dimensions.y, 0f * dimensions.z));
+                            newVertices.Add(cells[i].positions[j] + new Vector3(0f * dimensions.x, 1f * dimensions.y, 0f * dimensions.z));
 
-                        newVertices.Add(cells[i].positions[j] + new Vector3(0f * dimensions.x, 1f * dimensions.y, 1f * dimensions.z));
-                        newVertices.Add(cells[i].positions[j] + new Vector3(1f * dimensions.x, 1f * dimensions.y, 1f * dimensions.z));
-                        newVertices.Add(cells[i].positions[j] + new Vector3(1f * dimensions.x, 0f * dimensions.y, 1f * dimensions.z));
-                        newVertices.Add(cells[i].positions[j] + new Vector3(0f * dimensions.x, 0f * dimensions.y, 1f * dimensions.z));
-                        number += 8;
+                            newVertices.Add(cells[i].positions[j] + new Vector3(0f * dimensions.x, 1f * dimensions.y, 1f * dimensions.z));
+                            newVertices.Add(cells[i].positions[j] + new Vector3(1f * dimensions.x, 1f * dimensions.y, 1f * dimensions.z));
+                            newVertices.Add(cells[i].positions[j] + new Vector3(1f * dimensions.x, 0f * dimensions.y, 1f * dimensions.z));
+                            newVertices.Add(cells[i].positions[j] + new Vector3(0f * dimensions.x, 0f * dimensions.y, 1f * dimensions.z));
+                            number += 8;
+                        }
                     }
+
                 }
             }
         }
@@ -346,6 +361,7 @@ public class MazeManager : MonoBehaviour
     {
         List<int> newTrianglesCoordinates = new List<int>();
 
+        int lastIndexStartCell = 0;
         int lastIndex = 0;
         for (int i = 0; i < cells.Count; i++)
         {
@@ -353,54 +369,59 @@ public class MazeManager : MonoBehaviour
             {
                 if (cells[i].dividers[j])
                 {
-                    newTrianglesCoordinates.Add(lastIndex); // BottomLeftVertex
-                    newTrianglesCoordinates.Add(lastIndex + 2); // TopLeftVertex
-                    newTrianglesCoordinates.Add(lastIndex + 1); // BottomRightVertex
-                    newTrianglesCoordinates.Add(lastIndex); // BottomRightVertex
-                    newTrianglesCoordinates.Add(lastIndex + 3); // TopLeftVertex
-                    newTrianglesCoordinates.Add(lastIndex + 2); // TopRightVertex
+                    if (cells[i].isStartCell && j == 0 && cells[i].positions[0].y != 0) // if the startcell is not on the ground, leave it empty so the fp camera can move through it.
+                    { }
+                    else
+                    {
+                        newTrianglesCoordinates.Add(lastIndex); // BottomLeftVertex
+                        newTrianglesCoordinates.Add(lastIndex + 2); // TopLeftVertex
+                        newTrianglesCoordinates.Add(lastIndex + 1); // BottomRightVertex
+                        newTrianglesCoordinates.Add(lastIndex); // BottomRightVertex
+                        newTrianglesCoordinates.Add(lastIndex + 3); // TopLeftVertex
+                        newTrianglesCoordinates.Add(lastIndex + 2); // TopRightVertex
 
-                    // Top Quad
-                    newTrianglesCoordinates.Add(lastIndex + 10); // BottomLeftVertex
-                    newTrianglesCoordinates.Add(lastIndex + 11); // TopLeftVertex
-                    newTrianglesCoordinates.Add(lastIndex + 12); // BottomRightVertex
-                    newTrianglesCoordinates.Add(lastIndex + 10); // BottomRightVertex
-                    newTrianglesCoordinates.Add(lastIndex + 12); // TopLeftVertex
-                    newTrianglesCoordinates.Add(lastIndex + 13); // TopRightVertex
+                        // Top Quad
+                        newTrianglesCoordinates.Add(lastIndex + 10); // BottomLeftVertex
+                        newTrianglesCoordinates.Add(lastIndex + 11); // TopLeftVertex
+                        newTrianglesCoordinates.Add(lastIndex + 12); // BottomRightVertex
+                        newTrianglesCoordinates.Add(lastIndex + 10); // BottomRightVertex
+                        newTrianglesCoordinates.Add(lastIndex + 12); // TopLeftVertex
+                        newTrianglesCoordinates.Add(lastIndex + 13); // TopRightVertex
 
-                    // Right Quad
-                    newTrianglesCoordinates.Add(lastIndex + 9); // BottomLeftVertex
-                    newTrianglesCoordinates.Add(lastIndex + 18); // TopLeftVertex
-                    newTrianglesCoordinates.Add(lastIndex + 5); // BottomRightVertex
-                    newTrianglesCoordinates.Add(lastIndex + 9); // BottomRightVertex
-                    newTrianglesCoordinates.Add(lastIndex + 5); // TopLeftVertex
-                    newTrianglesCoordinates.Add(lastIndex + 6); // TopRightVertex
+                        // Right Quad
+                        newTrianglesCoordinates.Add(lastIndex + 9); // BottomLeftVertex
+                        newTrianglesCoordinates.Add(lastIndex + 18); // TopLeftVertex
+                        newTrianglesCoordinates.Add(lastIndex + 5); // BottomRightVertex
+                        newTrianglesCoordinates.Add(lastIndex + 9); // BottomRightVertex
+                        newTrianglesCoordinates.Add(lastIndex + 5); // TopLeftVertex
+                        newTrianglesCoordinates.Add(lastIndex + 6); // TopRightVertex
 
-                    // Left Quad
-                    newTrianglesCoordinates.Add(lastIndex + 8); // BottomLeftVertex
-                    newTrianglesCoordinates.Add(lastIndex + 7); // TopLeftVertex
-                    newTrianglesCoordinates.Add(lastIndex + 20); // BottomRightVertex
-                    newTrianglesCoordinates.Add(lastIndex + 8); // BottomRightVertex
-                    newTrianglesCoordinates.Add(lastIndex + 20); // TopLeftVertex
-                    newTrianglesCoordinates.Add(lastIndex + 19); // TopRightVertex
+                        // Left Quad
+                        newTrianglesCoordinates.Add(lastIndex + 8); // BottomLeftVertex
+                        newTrianglesCoordinates.Add(lastIndex + 7); // TopLeftVertex
+                        newTrianglesCoordinates.Add(lastIndex + 20); // BottomRightVertex
+                        newTrianglesCoordinates.Add(lastIndex + 8); // BottomRightVertex
+                        newTrianglesCoordinates.Add(lastIndex + 20); // TopLeftVertex
+                        newTrianglesCoordinates.Add(lastIndex + 19); // TopRightVertex
 
-                    // Back Quad
-                    newTrianglesCoordinates.Add(lastIndex + 21); // BottomLeftVertex
-                    newTrianglesCoordinates.Add(lastIndex + 20); // TopLeftVertex
-                    newTrianglesCoordinates.Add(lastIndex + 15); // BottomRightVertex
-                    newTrianglesCoordinates.Add(lastIndex + 21); // BottomRightVertex
-                    newTrianglesCoordinates.Add(lastIndex + 15); // TopLeftVertex
-                    newTrianglesCoordinates.Add(lastIndex + 14); // TopRightVertex
+                        // Back Quad
+                        newTrianglesCoordinates.Add(lastIndex + 21); // BottomLeftVertex
+                        newTrianglesCoordinates.Add(lastIndex + 20); // TopLeftVertex
+                        newTrianglesCoordinates.Add(lastIndex + 15); // BottomRightVertex
+                        newTrianglesCoordinates.Add(lastIndex + 21); // BottomRightVertex
+                        newTrianglesCoordinates.Add(lastIndex + 15); // TopLeftVertex
+                        newTrianglesCoordinates.Add(lastIndex + 14); // TopRightVertex
 
-                    // Bottom Quad
-                    newTrianglesCoordinates.Add(lastIndex + 16); // BottomLeftVertex
-                    newTrianglesCoordinates.Add(lastIndex + 22); // TopLeftVertex
-                    newTrianglesCoordinates.Add(lastIndex + 23); // BottomRightVertex
-                    newTrianglesCoordinates.Add(lastIndex + 16); // BottomRightVertex
-                    newTrianglesCoordinates.Add(lastIndex + 17); // TopLeftVertex
-                    newTrianglesCoordinates.Add(lastIndex + 22); // TopRightVertex
+                        // Bottom Quad
+                        newTrianglesCoordinates.Add(lastIndex + 16); // BottomLeftVertex
+                        newTrianglesCoordinates.Add(lastIndex + 22); // TopLeftVertex
+                        newTrianglesCoordinates.Add(lastIndex + 23); // BottomRightVertex
+                        newTrianglesCoordinates.Add(lastIndex + 16); // BottomRightVertex
+                        newTrianglesCoordinates.Add(lastIndex + 17); // TopLeftVertex
+                        newTrianglesCoordinates.Add(lastIndex + 22); // TopRightVertex
 
-                    lastIndex += 24;
+                        lastIndex += 24;
+                    }
                 }
             }
         }
@@ -430,13 +451,15 @@ public class MazeManager : MonoBehaviour
         Vector3[] vertices = verticesList.ToArray();
         mesh.vertices = vertices;
 
-        List<int> triangles = CreateTriangles();
-        mesh.triangles = triangles.ToArray();
+        List<int> trianglesList = CreateTriangles();
+        int[] triangles = trianglesList.ToArray();
+        mesh.triangles = triangles;
 
         Vector2[] uvs = CreateUVs(vertices);
-        Debug.Log(vertices.Length);
-        Debug.Log(uvs.Length);
         mesh.uv = uvs;
+
+        mesh.subMeshCount = 2; //mesh counter
+        mesh.SetTriangles(triangles, 0);
 
         mesh.Optimize();
         mesh.RecalculateNormals();
