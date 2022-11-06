@@ -5,19 +5,14 @@ using UnityEngine;
 public class MazeManager : MonoBehaviour
 {
     // Maze information
+    public static List<Cell> cells = new List<Cell>();
+    public List<Cell> unvisitedCells = new List<Cell>();
+
     [SerializeField]
     private Vector3 mazeDimension;
     private int currentFloor;
-
-    [SerializeField]
-    private int cellAmount;
-    [SerializeField]
     private List<int> cellAmountByFloor = new List<int>();
-
-    public static List<Cell> cells = new List<Cell>();
-    [SerializeField]
-    public List<Cell> unvisitedCells = new List<Cell>();
-    private Cell previousCell, currentCell, nextCell, endCell;
+    private Cell currentCell, nextCell, endCell;
     private bool isGenerating;
 
     // Start/End Cells
@@ -38,7 +33,6 @@ public class MazeManager : MonoBehaviour
     private Vector3 firstPersonCameraOffset = new Vector3(.5f, .5f, .5f);
     private Vector3 firstPersonCameraStartPosition;
     private List<Vector3> firstPersonCameraPositions = new List<Vector3>();
-    private float timeBetweenPositions = 5f;
     private bool reachedMazeEnd;
     private int playerSpeed = 5;
 
@@ -126,7 +120,6 @@ public class MazeManager : MonoBehaviour
             if (isPyramid)
                 sizeModifiers = new Vector3(i, 0f, i);
             floorSize = mazeDimension - sizeModifiers;
-            cellAmount += (int)floorSize.x * (int)floorSize.z;
         }
 
         sizeModifiers = Vector3.zero;
@@ -224,7 +217,7 @@ public class MazeManager : MonoBehaviour
     {
         for (int i = 0; i < cells.Count; i++)
         {
-            for (int j = 0; j < 4; j++) // Only do this for the left, right, top and bottom neighbour, not the above and below nieghbours
+            for (int j = 0; j < 4; j++) // Only do this for the left, right, top and bottom neighbour, not the above neighbour
             {
                 if (cells[i].neighbourCellIndex[j] != -1)
                 {
