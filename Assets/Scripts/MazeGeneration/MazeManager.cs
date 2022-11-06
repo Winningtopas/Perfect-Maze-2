@@ -29,14 +29,18 @@ public class MazeManager : MonoBehaviour
     private bool isPyramid;
 
     // User interface
-
-    [Header("UI references")]
     [SerializeField]
-    private AdjustSliderValue mazeWidthSliderText, mazeHeightSliderText, mazeLengthSliderText;
+    private AdjustSliderValue mazeWidthSliderText, mazeHeightSliderText, mazeLengthSliderText, playerSpeedSliderText;
 
     // Camera information
     [SerializeField]
     private Transform topDownCamera, frontCamera, firstPersonCamera;
+    private Vector3 firstPersonCameraOffset = new Vector3(.5f, .5f, .5f);
+    private Vector3 firstPersonCameraStartPosition;
+    private List<Vector3> firstPersonCameraPositions = new List<Vector3>();
+    private float timeBetweenPositions = 5f;
+    private bool reachedMazeEnd;
+    private int playerSpeed = 5;
 
     // Animations
 
@@ -58,16 +62,15 @@ public class MazeManager : MonoBehaviour
                     break;
             }
         }
-
-        if (!isGenerating)
-            StartCoroutine(ResetMaze());
-        isGenerating = true;
     }
 
     public void SpawnMaze()
     {
         if (!isGenerating)
+        {
+            StopAllCoroutines();
             StartCoroutine(ResetMaze());
+        }
         isGenerating = true;
     }
 
@@ -85,16 +88,14 @@ public class MazeManager : MonoBehaviour
         DestroyMaze();
         if (isPyramid)
         {
-            mazeDimension.x = 10;
-            mazeDimension.y = 10;
-            mazeDimension.z = 10;
+            mazeWidthSliderText.sliderValue = 10;
+            mazeHeightSliderText.sliderValue = 10;
+            mazeLengthSliderText.sliderValue = 10;
         }
-        else
-        {
-            mazeDimension.x = mazeWidthSliderText.sliderValue;
-            mazeDimension.y = mazeHeightSliderText.sliderValue;
-            mazeDimension.z = mazeLengthSliderText.sliderValue;
-        }
+        mazeDimension.x = mazeWidthSliderText.sliderValue;
+        mazeDimension.y = mazeHeightSliderText.sliderValue;
+        mazeDimension.z = mazeLengthSliderText.sliderValue;
+        playerSpeed = playerSpeedSliderText.sliderValue;
 
         SpawnFloorGrid();
         PositionCameras();
@@ -237,14 +238,26 @@ public class MazeManager : MonoBehaviour
     {
         int startCellIndex = 0;
         int visitedCellAmount = 0;
+        bool generateEndCell = false;
+        bool generatedFloorEndCell = false;
 
         for (int y = 0; y < mazeDimension.y; y++)
         {
-            startCellIndex = Random.Range(0, cellAmountByFloor[y]) + visitedCellAmount;
+            //startCellIndex = Random.Range(0, cellAmountByFloor[y]) + visitedCellAmount; // A random cell on the floor
+
+            if (y == 0)
+                startCellIndex = Random.Range(0, (int)mazeDimension.x); // Makes an entrance on the side of the maze
+            else
+                startCellIndex = endCell.neighbourCellIndex[4]; // Make the cell above the endcell the startcell of the next floor
 
             currentCell = cells[startCellIndex];
             currentCell.isStartCell = true;
             currentCell.visited = true; // Set the first cell on visited, otherwise the maze can become one big loop
+
+            if (y == 0)
+                firstPersonCameraStartPosition = currentCell.positions[0] + firstPersonCameraOffset;
+
+            firstPersonCameraPositions.Add(currentCell.positions[0] + firstPersonCameraOffset);
 
             visitedCellAmount += cellAmountByFloor[y];
 
@@ -254,6 +267,9 @@ public class MazeManager : MonoBehaviour
 
                 if (nextCell != null && !nextCell.visited) // If there is a neighbouring cell that's unvisited
                 {
+                    if (!generatedFloorEndCell)// Only add camera positions when the endcell hasn't been generated yet
+                        firstPersonCameraPositions.Add(nextCell.positions[0] + firstPersonCameraOffset);
+
                     nextCell.visited = true;
 
                     if (currentCell.unvisitedNeighbourCells > 0)
@@ -265,19 +281,26 @@ public class MazeManager : MonoBehaviour
                 }
                 else if (unvisitedCells.Count > 0)
                 {
+                    generateEndCell = true;
+                    if (generateEndCell && !generatedFloorEndCell)
+                    {
+                        generatedFloorEndCell = true;
+                        endCell = currentCell;
+                        currentCell.isEndCell = true;
+                    }
+
                     currentCell = unvisitedCells[unvisitedCells.Count - 1];
                     unvisitedCells.RemoveAt(unvisitedCells.Count - 1);
                 }
                 else // If every cell has been visited
                 {
-                    endCell = currentCell;
-                    currentCell.isEndCell = true;
+                    generateEndCell = false;
+                    generatedFloorEndCell = false;
 
                     // Draw the mesh if all the floors have gotten a maze layout
                     if (y == mazeDimension.y - 1)
-                    {
                         StartCoroutine(FinishMazeGeneration());
-                    }
+
                     break;
                 }
             }
@@ -291,6 +314,7 @@ public class MazeManager : MonoBehaviour
     {
         cells.Clear();
         startCellTriangles.Clear();
+        firstPersonCameraPositions.Clear();
 
         GetComponent<MeshFilter>().mesh = null;
     }
@@ -361,7 +385,6 @@ public class MazeManager : MonoBehaviour
     {
         List<int> newTrianglesCoordinates = new List<int>();
 
-        int lastIndexStartCell = 0;
         int lastIndex = 0;
         for (int i = 0; i < cells.Count; i++)
         {
@@ -485,6 +508,7 @@ public class MazeManager : MonoBehaviour
 
         topDownCamera.transform.position = new Vector3(x, mazeDimension.y + largestBetweenXAndZ, z);
         frontCamera.transform.position = new Vector3(mazeDimension.x + largestBetweenZAndY, y, z);
+        firstPersonCamera.transform.position = firstPersonCameraStartPosition;
     }
 
     private IEnumerator FinishMazeGeneration()
@@ -498,5 +522,63 @@ public class MazeManager : MonoBehaviour
         yield return new WaitForSeconds(curtainOpenTime);
 
         isGenerating = false;
+        StartCoroutine(PositionFirstPersonCamera());
+    }
+
+    private IEnumerator PositionFirstPersonCamera()
+    {
+        float positionTime = 1.1f - playerSpeed * 0.1f;
+        float rotateTime = .15f;
+        Vector3 startPosition = Vector3.zero;
+        Vector3 lookDirection = Vector3.zero;
+
+        Quaternion startLookOrientation = new Quaternion();
+        Quaternion lookOrientation = new Quaternion();
+
+        for (int i = 0; i < firstPersonCameraPositions.Count; i++)
+        {
+            startPosition = firstPersonCamera.position;
+
+            float t = 0f;
+            while (t < positionTime)
+            {
+                firstPersonCamera.position = Vector3.Lerp(startPosition, firstPersonCameraPositions[i], t / positionTime);
+                t += Time.deltaTime;
+                yield return null;
+                firstPersonCamera.position = firstPersonCameraPositions[i];
+            }
+            if (t >= positionTime)
+            {
+                if (i + 1 < firstPersonCameraPositions.Count)
+                    lookDirection = firstPersonCameraPositions[i + 1] - firstPersonCamera.position;
+                else
+                    lookOrientation = startLookOrientation;
+
+                lookOrientation = Quaternion.LookRotation(lookDirection);
+
+                if (lookOrientation != startLookOrientation)
+                {
+                    StartCoroutine(RotateFirstPersonCamera(lookOrientation, rotateTime));
+                    yield return new WaitForSeconds(rotateTime);
+                }
+                startLookOrientation = lookOrientation;
+            }
+        }
+        reachedMazeEnd = true;
+    }
+
+    IEnumerator RotateFirstPersonCamera(Quaternion endValue, float duration)
+    {
+        float time = 0;
+        Quaternion startValue = firstPersonCamera.rotation;
+
+        while (time < duration)
+        {
+            firstPersonCamera.rotation = Quaternion.Lerp(startValue, endValue, time / duration);
+            time += Time.deltaTime;
+            yield return null;
+        }
+
+        firstPersonCamera.rotation = endValue;
     }
 }
