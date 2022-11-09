@@ -15,6 +15,16 @@ public class MazeManager : MonoBehaviour
     private Cell currentCell, nextCell, endCell;
     private bool isGenerating;
 
+    // Mesh information
+
+    private List<int> trianglesListDivider0 = new List<int>();
+    private List<int> trianglesListDivider1 = new List<int>();
+    private List<int> trianglesListDivider2 = new List<int>();
+    private List<int> trianglesListDivider3 = new List<int>();
+    private List<int> trianglesListDivider4 = new List<int>();
+
+    private List<List<int>> trianglesByDividerList = new List<List<int>>();
+
     // Start/End Cells
 
     private List<int> startCellTriangles = new List<int>();
@@ -45,6 +55,12 @@ public class MazeManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        trianglesByDividerList.Add(trianglesListDivider0);
+        trianglesByDividerList.Add(trianglesListDivider1);
+        trianglesByDividerList.Add(trianglesListDivider2);
+        trianglesByDividerList.Add(trianglesListDivider3);
+        trianglesByDividerList.Add(trianglesListDivider4);
+
         // All the animators have the same animations, so I only need to check one animator for the clip lengths
         AnimationClip[] clips = curtainAnimators[0].runtimeAnimatorController.animationClips;
         foreach (AnimationClip clip in clips)
@@ -374,10 +390,8 @@ public class MazeManager : MonoBehaviour
         return newVertices;
     }
 
-    private List<int> CreateTriangles()
+    private void CreateTriangles()
     {
-        List<int> newTrianglesCoordinates = new List<int>();
-
         int lastIndex = 0;
         for (int i = 0; i < cells.Count; i++)
         {
@@ -389,71 +403,94 @@ public class MazeManager : MonoBehaviour
                     { }
                     else
                     {
-                        newTrianglesCoordinates.Add(lastIndex); // BottomLeftVertex
-                        newTrianglesCoordinates.Add(lastIndex + 2); // TopLeftVertex
-                        newTrianglesCoordinates.Add(lastIndex + 1); // BottomRightVertex
-                        newTrianglesCoordinates.Add(lastIndex); // BottomRightVertex
-                        newTrianglesCoordinates.Add(lastIndex + 3); // TopLeftVertex
-                        newTrianglesCoordinates.Add(lastIndex + 2); // TopRightVertex
+                        trianglesByDividerList[j].Add(lastIndex); // BottomLeftVertex
+                        trianglesByDividerList[j].Add(lastIndex + 2); // TopLeftVertex
+                        trianglesByDividerList[j].Add(lastIndex + 1); // BottomRightVertex
+                        trianglesByDividerList[j].Add(lastIndex); // BottomRightVertex
+                        trianglesByDividerList[j].Add(lastIndex + 3); // TopLeftVertex
+                        trianglesByDividerList[j].Add(lastIndex + 2); // TopRightVertex
 
                         // Top Quad
-                        newTrianglesCoordinates.Add(lastIndex + 10); // BottomLeftVertex
-                        newTrianglesCoordinates.Add(lastIndex + 11); // TopLeftVertex
-                        newTrianglesCoordinates.Add(lastIndex + 12); // BottomRightVertex
-                        newTrianglesCoordinates.Add(lastIndex + 10); // BottomRightVertex
-                        newTrianglesCoordinates.Add(lastIndex + 12); // TopLeftVertex
-                        newTrianglesCoordinates.Add(lastIndex + 13); // TopRightVertex
+                        trianglesByDividerList[j].Add(lastIndex + 10); // BottomLeftVertex
+                        trianglesByDividerList[j].Add(lastIndex + 11); // TopLeftVertex
+                        trianglesByDividerList[j].Add(lastIndex + 12); // BottomRightVertex
+                        trianglesByDividerList[j].Add(lastIndex + 10); // BottomRightVertex
+                        trianglesByDividerList[j].Add(lastIndex + 12); // TopLeftVertex
+                        trianglesByDividerList[j].Add(lastIndex + 13); // TopRightVertex
 
                         // Right Quad
-                        newTrianglesCoordinates.Add(lastIndex + 9); // BottomLeftVertex
-                        newTrianglesCoordinates.Add(lastIndex + 18); // TopLeftVertex
-                        newTrianglesCoordinates.Add(lastIndex + 5); // BottomRightVertex
-                        newTrianglesCoordinates.Add(lastIndex + 9); // BottomRightVertex
-                        newTrianglesCoordinates.Add(lastIndex + 5); // TopLeftVertex
-                        newTrianglesCoordinates.Add(lastIndex + 6); // TopRightVertex
+                        trianglesByDividerList[j].Add(lastIndex + 9); // BottomLeftVertex
+                        trianglesByDividerList[j].Add(lastIndex + 18); // TopLeftVertex
+                        trianglesByDividerList[j].Add(lastIndex + 5); // BottomRightVertex
+                        trianglesByDividerList[j].Add(lastIndex + 9); // BottomRightVertex
+                        trianglesByDividerList[j].Add(lastIndex + 5); // TopLeftVertex
+                        trianglesByDividerList[j].Add(lastIndex + 6); // TopRightVertex
 
                         // Left Quad
-                        newTrianglesCoordinates.Add(lastIndex + 8); // BottomLeftVertex
-                        newTrianglesCoordinates.Add(lastIndex + 7); // TopLeftVertex
-                        newTrianglesCoordinates.Add(lastIndex + 20); // BottomRightVertex
-                        newTrianglesCoordinates.Add(lastIndex + 8); // BottomRightVertex
-                        newTrianglesCoordinates.Add(lastIndex + 20); // TopLeftVertex
-                        newTrianglesCoordinates.Add(lastIndex + 19); // TopRightVertex
+                        trianglesByDividerList[j].Add(lastIndex + 8); // BottomLeftVertex
+                        trianglesByDividerList[j].Add(lastIndex + 7); // TopLeftVertex
+                        trianglesByDividerList[j].Add(lastIndex + 20); // BottomRightVertex
+                        trianglesByDividerList[j].Add(lastIndex + 8); // BottomRightVertex
+                        trianglesByDividerList[j].Add(lastIndex + 20); // TopLeftVertex
+                        trianglesByDividerList[j].Add(lastIndex + 19); // TopRightVertex
 
                         // Back Quad
-                        newTrianglesCoordinates.Add(lastIndex + 21); // BottomLeftVertex
-                        newTrianglesCoordinates.Add(lastIndex + 20); // TopLeftVertex
-                        newTrianglesCoordinates.Add(lastIndex + 15); // BottomRightVertex
-                        newTrianglesCoordinates.Add(lastIndex + 21); // BottomRightVertex
-                        newTrianglesCoordinates.Add(lastIndex + 15); // TopLeftVertex
-                        newTrianglesCoordinates.Add(lastIndex + 14); // TopRightVertex
+                        trianglesByDividerList[j].Add(lastIndex + 21); // BottomLeftVertex
+                        trianglesByDividerList[j].Add(lastIndex + 20); // TopLeftVertex
+                        trianglesByDividerList[j].Add(lastIndex + 15); // BottomRightVertex
+                        trianglesByDividerList[j].Add(lastIndex + 21); // BottomRightVertex
+                        trianglesByDividerList[j].Add(lastIndex + 15); // TopLeftVertex
+                        trianglesByDividerList[j].Add(lastIndex + 14); // TopRightVertex
 
                         // Bottom Quad
-                        newTrianglesCoordinates.Add(lastIndex + 16); // BottomLeftVertex
-                        newTrianglesCoordinates.Add(lastIndex + 22); // TopLeftVertex
-                        newTrianglesCoordinates.Add(lastIndex + 23); // BottomRightVertex
-                        newTrianglesCoordinates.Add(lastIndex + 16); // BottomRightVertex
-                        newTrianglesCoordinates.Add(lastIndex + 17); // TopLeftVertex
-                        newTrianglesCoordinates.Add(lastIndex + 22); // TopRightVertex
+                        trianglesByDividerList[j].Add(lastIndex + 16); // BottomLeftVertex
+                        trianglesByDividerList[j].Add(lastIndex + 22); // TopLeftVertex
+                        trianglesByDividerList[j].Add(lastIndex + 23); // BottomRightVertex
+                        trianglesByDividerList[j].Add(lastIndex + 16); // BottomRightVertex
+                        trianglesByDividerList[j].Add(lastIndex + 17); // TopLeftVertex
+                        trianglesByDividerList[j].Add(lastIndex + 22); // TopRightVertex
 
                         lastIndex += 24;
+
                     }
                 }
             }
         }
-        return newTrianglesCoordinates;
     }
 
 
-    private Vector2[] CreateUVs(Vector3[] vertices)
+    private Vector2[] CreateUVs(Vector3[] vertices, int[] triangles)
     {
         Vector2[] newUvs = new Vector2[vertices.Length];
+        Vector3 v1, v2, v3;
 
-        for (int i = 0; i < vertices.Length; i++)
+        for (int i = 0; i < triangles.Length; i += 3)
         {
-            newUvs[i] = new Vector2(vertices[i].x, vertices[i].z);
-        }
+            v1 = vertices[triangles[i]];
+            v2 = vertices[triangles[i + 1]];
+            v3 = vertices[triangles[i + 2]];
 
+            if (v1.x == v2.x && v1.x == v3.x) // red/blue
+            {
+                newUvs[triangles[i]] = new Vector2(v1.z, v1.y);
+                newUvs[triangles[i + 1]] = new Vector2(v2.z, v2.y);
+                newUvs[triangles[i + 2]] = new Vector2(v3.z, v3.y);
+            }
+
+            if (v1.y == v2.y && v1.y == v3.y) // top
+            {
+                newUvs[triangles[i]] = new Vector2(v1.x, v1.z);
+                newUvs[triangles[i + 1]] = new Vector2(v2.x, v2.z);
+                newUvs[triangles[i + 2]] = new Vector2(v3.x, v3.z);
+            }
+
+            if (v1.z == v2.z && v1.z == v3.z) // green/purple
+            {
+                newUvs[triangles[i]] = new Vector2(v1.x, v1.y);
+                newUvs[triangles[i + 1]] = new Vector2(v2.x, v2.y);
+                newUvs[triangles[i + 2]] = new Vector2(v3.x, v3.y);
+            }
+        }
         return newUvs;
     }
 
@@ -467,15 +504,25 @@ public class MazeManager : MonoBehaviour
         Vector3[] vertices = verticesList.ToArray();
         mesh.vertices = vertices;
 
-        List<int> trianglesList = CreateTriangles();
-        int[] triangles = trianglesList.ToArray();
+        CreateTriangles();
+
+        List<int> allTriangles = new List<int>();
+
+        foreach (List<int> list in trianglesByDividerList)
+            allTriangles.AddRange(list);
+
+        int[] triangles = allTriangles.ToArray();
         mesh.triangles = triangles;
 
-        Vector2[] uvs = CreateUVs(vertices);
+        Vector2[] uvs = CreateUVs(vertices, triangles);
         mesh.uv = uvs;
 
-        mesh.subMeshCount = 2; //mesh counter
-        mesh.SetTriangles(triangles, 0);
+        mesh.subMeshCount = 5; //mesh counter
+        mesh.SetTriangles(trianglesByDividerList[0], 0);
+        mesh.SetTriangles(trianglesByDividerList[1], 1);
+        mesh.SetTriangles(trianglesByDividerList[2], 2);
+        mesh.SetTriangles(trianglesByDividerList[3], 3);
+        mesh.SetTriangles(trianglesByDividerList[4], 4);
 
         mesh.Optimize();
         mesh.RecalculateNormals();
