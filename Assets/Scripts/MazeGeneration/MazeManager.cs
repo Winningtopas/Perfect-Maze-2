@@ -11,6 +11,7 @@ public class MazeManager : MonoBehaviour
     [SerializeField]
     private Vector3 mazeDimension;
     private int currentFloor;
+    private int mazeCellAmount;
     private List<int> cellAmountByFloor = new List<int>();
     private Cell currentCell, nextCell, endCell;
     private bool isGenerating;
@@ -86,6 +87,7 @@ public class MazeManager : MonoBehaviour
 
     public IEnumerator ResetMaze()
     {
+        mazeCellAmount = 0;
         currentFloor = 0;
 
         curtainAnimators[0].Play("curtainsClose");
@@ -105,6 +107,7 @@ public class MazeManager : MonoBehaviour
         mazeDimension.x = mazeWidthSliderText.sliderValue;
         mazeDimension.y = mazeHeightSliderText.sliderValue;
         mazeDimension.z = mazeLengthSliderText.sliderValue;
+
         playerSpeed = playerSpeedSliderText.sliderValue;
 
         SpawnFloorGrid();
@@ -160,12 +163,19 @@ public class MazeManager : MonoBehaviour
                     }
 
                     cells.Add(newCel);
-                    newCel.index = cells.IndexOf(newCel);
+                    newCel.index = mazeCellAmount;
 
-                    AssignCellNeighboursIndices(newCel, (int)floorSize.x, (int)floorSize.z, x, z, y);
-
+                    int previousFloorCellAmount = 0;
+                    for (int i = y; i > 0; i--)
+                    {
+                        if (y > 0)
+                            previousFloorCellAmount += cellAmountByFloor[y - i];
+                    }
+                    newCel.AssignCellNeighbours((int)floorSize.x, (int)floorSize.z, (int)mazeDimension.y, previousFloorCellAmount, x, z, y);
                     newCel.OnCreation(x, z, y);
+
                     floorCellAmount++;
+                    mazeCellAmount++;
                 }
             }
 
@@ -175,79 +185,83 @@ public class MazeManager : MonoBehaviour
             currentFloor++;
         }
 
-        AssignCellNeighbourCells();
+        //for (int i = 0; i < cells.Count; i++)
+        //{
+        //    Debug.Log("Index: " + cells[i].index + " Neighbours: " + cells[i].neighbourCellIndex[0] + " " + cells[i].neighbourCellIndex[1] + " " + cells[i].neighbourCellIndex[2] + " " + cells[i].neighbourCellIndex[3] + " " + cells[i].neighbourCellIndex[4] + " " + cells[i].neighbourCellIndex[5]);
+        //}
+
+        //AssignCellNeighbourCells();
         StartCoroutine(GenerateMaze());
     }
 
-    private void AssignCellNeighboursIndices(Cell newCel, int floorSizeX, int floorSizeZ, int x, int z, int y)
-    {
-        int previousFloorCellAmount = 0;
-        for (int i = y; i > 0; i--)
-        {
-            if (y > 0)
-                previousFloorCellAmount += cellAmountByFloor[y - i];
-        }
+    //private void AssignCellNeighboursIndices(Cell newCel, int floorSizeX, int floorSizeZ, int x, int z, int y)
+    //{
+    //    int previousFloorCellAmount = 0;
+    //    for (int i = y; i > 0; i--)
+    //    {
+    //        if (y > 0)
+    //            previousFloorCellAmount += cellAmountByFloor[y - i];
+    //    }
 
-        // left neighbour
-        if (newCel.index == floorSizeZ * x + previousFloorCellAmount)
-            newCel.neighbourCellIndex[0] = -1;
-        else
-            newCel.neighbourCellIndex[0] = newCel.index - 1;
+    //    // left neighbour
+    //    if (newCel.index == floorSizeZ * x + previousFloorCellAmount)
+    //        newCel.neighbourCellIndex[0] = -1;
+    //    else
+    //        newCel.neighbourCellIndex[0] = newCel.index - 1;
 
-        // right neighbour
-        if (newCel.index == floorSizeZ * (x + 1) - 1 + previousFloorCellAmount || newCel.index + 1 + previousFloorCellAmount == floorSizeX * floorSizeZ * (int)mazeDimension.y)
-            newCel.neighbourCellIndex[1] = -1;
-        else
-            newCel.neighbourCellIndex[1] = newCel.index + 1;
+    //    // right neighbour
+    //    if (newCel.index == floorSizeZ * (x + 1) - 1 + previousFloorCellAmount || newCel.index + 1 + previousFloorCellAmount == floorSizeX * floorSizeZ * (int)mazeDimension.y)
+    //        newCel.neighbourCellIndex[1] = -1;
+    //    else
+    //        newCel.neighbourCellIndex[1] = newCel.index + 1;
 
-        // top neighbour
-        if (newCel.index >= previousFloorCellAmount + floorSizeZ * floorSizeX - floorSizeZ)
-            newCel.neighbourCellIndex[2] = -1;
-        else
-            newCel.neighbourCellIndex[2] = newCel.index + floorSizeZ;
+    //    // top neighbour
+    //    if (newCel.index >= previousFloorCellAmount + floorSizeZ * floorSizeX - floorSizeZ)
+    //        newCel.neighbourCellIndex[2] = -1;
+    //    else
+    //        newCel.neighbourCellIndex[2] = newCel.index + floorSizeZ;
 
-        // bottom neighbour
-        if (newCel.index - floorSizeZ - previousFloorCellAmount < 0)
-            newCel.neighbourCellIndex[3] = -1;
-        else
-            newCel.neighbourCellIndex[3] = newCel.index - floorSizeZ;
+    //    // bottom neighbour
+    //    if (newCel.index - floorSizeZ - previousFloorCellAmount < 0)
+    //        newCel.neighbourCellIndex[3] = -1;
+    //    else
+    //        newCel.neighbourCellIndex[3] = newCel.index - floorSizeZ;
 
-        // above neighbour
-        if (isPyramid)
-        {
-            if ((newCel.index - previousFloorCellAmount + 1) % (mazeDimension.y - y) == 0 || newCel.index >= Mathf.Ceil((floorSizeX - 1) * (floorSizeZ - 1) + previousFloorCellAmount + mazeDimension.y - (y + 1)))
-                newCel.neighbourCellIndex[4] = -1;
-            else
-                newCel.neighbourCellIndex[4] = newCel.index + floorSizeX * floorSizeZ - x;
-        }
-        else
-        {
-            if (newCel.index + floorSizeX * floorSizeZ >= floorSizeX * floorSizeZ * mazeDimension.y)
-                newCel.neighbourCellIndex[4] = -1;
-            else
-                newCel.neighbourCellIndex[4] = newCel.index + floorSizeX * floorSizeZ;
-        }
-    }
+    //    // above neighbour
+    //    if (isPyramid)
+    //    {
+    //        if ((newCel.index - previousFloorCellAmount + 1) % (mazeDimension.y - y) == 0 || newCel.index >= Mathf.Ceil((floorSizeX - 1) * (floorSizeZ - 1) + previousFloorCellAmount + mazeDimension.y - (y + 1)))
+    //            newCel.neighbourCellIndex[4] = -1;
+    //        else
+    //            newCel.neighbourCellIndex[4] = newCel.index + floorSizeX * floorSizeZ - x;
+    //    }
+    //    else
+    //    {
+    //        if (newCel.index + floorSizeX * floorSizeZ >= floorSizeX * floorSizeZ * mazeDimension.y)
+    //            newCel.neighbourCellIndex[4] = -1;
+    //        else
+    //            newCel.neighbourCellIndex[4] = newCel.index + floorSizeX * floorSizeZ;
+    //    }
+    //}
 
-    private void AssignCellNeighbourCells()
-    {
-        for (int i = 0; i < cells.Count; i++)
-        {
-            for (int j = 0; j < 4; j++) // Only do this for the left, right, top and bottom neighbour, not the above neighbour
-            {
-                if (cells[i].neighbourCellIndex[j] != -1)
-                {
-                    cells[i].availableNeighbourCells.Add(cells[cells[i].neighbourCellIndex[j]]);
-                }
-            }
-        }
-    }
+    //private void AssignCellNeighbourCells()
+    //{
+    //    for (int i = 0; i < cells.Count; i++)
+    //    {
+    //        for (int j = 0; j < 4; j++) // Only do this for the left, right, top and bottom neighbour, not the above neighbour
+    //        {
+    //            if (cells[i].neighbourCellIndex[j] != -1)
+    //            {
+    //                cells[i].availableNeighbourCells.Add(cells[cells[i].neighbourCellIndex[j]]);
+    //            }
+    //        }
+    //    }
+    //}
 
     private IEnumerator GenerateMaze()
     {
         int startCellIndex = 0;
         int visitedCellAmount = 0;
-        bool generateEndCell = false;
         bool generatedFloorEndCell = false;
 
         for (int y = 0; y < mazeDimension.y; y++)
@@ -257,7 +271,7 @@ public class MazeManager : MonoBehaviour
             if (y == 0)
                 startCellIndex = Random.Range(0, (int)mazeDimension.x); // Makes an entrance on the side of the maze
             else
-                startCellIndex = endCell.neighbourCellIndex[4]; // Make the cell above the endcell the startcell of the next floor
+                startCellIndex = endCell.neighbourCellIndex[5]; // Make the cell above the endcell the startcell of the next floor
 
             currentCell = cells[startCellIndex];
             currentCell.isStartCell = true;
@@ -276,7 +290,7 @@ public class MazeManager : MonoBehaviour
 
                 if (nextCell != null && !nextCell.visited) // If there is a neighbouring cell that's unvisited
                 {
-                    if (!generatedFloorEndCell)// Only add camera positions when the endcell hasn't been generated yet
+                    if (!generatedFloorEndCell) // Only add camera positions when the endcell hasn't been generated yet
                         firstPersonCameraPositions.Add(nextCell.positions[0] + firstPersonCameraOffset);
 
                     nextCell.visited = true;
@@ -290,8 +304,7 @@ public class MazeManager : MonoBehaviour
                 }
                 else if (unvisitedCells.Count > 0)
                 {
-                    generateEndCell = true;
-                    if (generateEndCell && !generatedFloorEndCell)
+                    if (!generatedFloorEndCell)
                     {
                         generatedFloorEndCell = true;
                         endCell = currentCell;
@@ -303,7 +316,6 @@ public class MazeManager : MonoBehaviour
                 }
                 else // If every cell has been visited
                 {
-                    generateEndCell = false;
                     generatedFloorEndCell = false;
 
                     // Draw the mesh if all the floors have gotten a maze layout

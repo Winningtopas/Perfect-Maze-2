@@ -15,14 +15,82 @@ public class Cell
 
     // Neighbour cell informatioon
 
-    public int[] neighbourCellIndex = new int[] { -1, -1, -1, -1, -1}; // left, right, top, bottom, above
+    public int[] neighbourCellIndex = new int[] { -1, -1, -1, -1, -1, -1 }; // left, right, bottom, top, below, above
+    private Cell[] neighbourCells = new Cell[6];
     public List<Cell> availableNeighbourCells = new List<Cell>();
+    public Cell belowNeighbourCell, aboveNeighbourCell;
     public int unvisitedNeighbourCells = 4;
     public int amountOfcellsOnPreviousFloors;
 
     public void OnCreation(int x, int z, int y)
     {
-        //Debug.Log("Index: " + index + " Neighbours: " + neighbourCellIndex[0] + " " + neighbourCellIndex[1] + " " + neighbourCellIndex[2] + " " + neighbourCellIndex[3] + " " + neighbourCellIndex[4] + " x: " + x + "  z:" + z + " y: " + y);
+        //Debug.Log("Index: " + index + " Neighbours: " + neighbourCellIndex[0] + " " + neighbourCellIndex[1] + " x: " + x + "  z:" + z + " y: " + y);
+    }
+
+    public void AssignCellNeighbours(int floorSizeX, int floorSizeZ, int mazeSizeY, int previousFloorCellAmount, int x, int z, int y)
+    {
+        // left neighbour
+        if (index == floorSizeZ * x + previousFloorCellAmount)
+            neighbourCellIndex[0] = -1;
+        else
+        {
+            neighbourCellIndex[0] = index - 1;
+            neighbourCells[0] = MazeManager.cells[index - 1];
+            availableNeighbourCells.Add(neighbourCells[0]);
+
+            // Assign right neighbour to the left neighbour
+            neighbourCells[0].neighbourCellIndex[1] = index;
+            neighbourCells[0].neighbourCells[1] = this;
+            neighbourCells[0].availableNeighbourCells.Add(neighbourCells[0].neighbourCells[1]);
+        }
+
+        // bottom neighbour
+        if (index - floorSizeZ - previousFloorCellAmount < 0)
+            neighbourCellIndex[2] = -1;
+        else
+        {
+            neighbourCellIndex[2] = index - floorSizeZ;
+            neighbourCells[2] = MazeManager.cells[index - floorSizeZ];
+            availableNeighbourCells.Add(neighbourCells[2]);
+
+            // Assign top neighbour to the bottom neighbour
+            neighbourCells[2].neighbourCellIndex[3] = index;
+            neighbourCells[2].neighbourCells[3] = this;
+            neighbourCells[2].availableNeighbourCells.Add(neighbourCells[2].neighbourCells[3]);
+        }
+
+        // above neighbour
+        //if (isPyramid)
+        //{
+        //    if ((index - previousFloorCellAmount + 1) % (mazeDimension.y - y) == 0 || index >= Mathf.Ceil((floorSizeX - 1) * (floorSizeZ - 1) + previousFloorCellAmount + mazeDimension.y - (y + 1)))
+        //        neighbourCellIndex[4] = -1;
+        //    else
+        //        neighbourCellIndex[4] = index + floorSizeX * floorSizeZ - x;
+        //}
+        //else
+        //{
+
+        if (index - floorSizeX * floorSizeZ < 0)
+            neighbourCellIndex[4] = -1;
+        else
+        {
+            neighbourCellIndex[4] = index - floorSizeX * floorSizeZ;
+            neighbourCells[4] = MazeManager.cells[index - floorSizeX * floorSizeZ];
+            belowNeighbourCell = neighbourCells[4];
+
+            // Assign top neighbour to the bottom neighbour
+            neighbourCells[4].neighbourCellIndex[5] = index;
+            neighbourCells[4].neighbourCells[5] = this;
+            neighbourCells[4].aboveNeighbourCell = neighbourCells[4].neighbourCells[5];
+        }
+
+        //if (index + floorSizeX * floorSizeZ >= floorSizeX * floorSizeZ * mazeSizeY)
+        //    neighbourCellIndex[5] = -1;
+        //else
+        //{
+        //    neighbourCellIndex[5] = index + floorSizeX * floorSizeZ;
+        //    neighbourCells[5] = MazeManager.cells[index + floorSizeX * floorSizeZ];
+        //}
     }
 
     public Cell GetRandomCellNeighbour()
