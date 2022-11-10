@@ -2971,8 +2971,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   mazeDimension: {x: 3, y: 2, z: 3}
-  cellAmount: 0
-  cellAmountByFloor: 
   isPyramid: 0
   mazeWidthSliderText: {fileID: 4363420068161488473}
   mazeHeightSliderText: {fileID: 1944958868537782310}
@@ -3027,7 +3025,10 @@ MeshRenderer:
   m_RendererPriority: 0
   m_Materials:
   - {fileID: 2100000, guid: 67daf37ff59454b42a41cab61b4e8b8b, type: 2}
-  - {fileID: 2100000, guid: 69fdf7a586061a14ba5fa6b265fc6797, type: 2}
+  - {fileID: 2100000, guid: a2b776f3edc15bf459ec147c9ecdc953, type: 2}
+  - {fileID: 2100000, guid: be703b06e145508479ac1861e2355427, type: 2}
+  - {fileID: 2100000, guid: 88053d88cbebea040a5099ae8e329984, type: 2}
+  - {fileID: 2100000, guid: 4072d6fa45b4af2458c741544cf2cce2, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0

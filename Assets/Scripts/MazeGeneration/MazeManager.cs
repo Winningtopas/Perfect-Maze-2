@@ -323,6 +323,8 @@ public class MazeManager : MonoBehaviour
     {
         cells.Clear();
         startCellTriangles.Clear();
+        foreach (List<int> list in trianglesByDividerList)
+            list.Clear();
         firstPersonCameraPositions.Clear();
 
         GetComponent<MeshFilter>().mesh = null;
@@ -429,9 +431,9 @@ public class MazeManager : MonoBehaviour
                         // Left Quad
                         trianglesByDividerList[j].Add(lastIndex + 8); // BottomLeftVertex
                         trianglesByDividerList[j].Add(lastIndex + 7); // TopLeftVertex
-                        trianglesByDividerList[j].Add(lastIndex + 20); // BottomRightVertex
+                        trianglesByDividerList[j].Add(lastIndex + 4); // BottomRightVertex
                         trianglesByDividerList[j].Add(lastIndex + 8); // BottomRightVertex
-                        trianglesByDividerList[j].Add(lastIndex + 20); // TopLeftVertex
+                        trianglesByDividerList[j].Add(lastIndex + 4); // TopLeftVertex
                         trianglesByDividerList[j].Add(lastIndex + 19); // TopRightVertex
 
                         // Back Quad
