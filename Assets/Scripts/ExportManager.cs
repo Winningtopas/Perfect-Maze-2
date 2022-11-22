@@ -33,6 +33,7 @@ public class ExportManager : MonoBehaviour
     public void GeneratePicture()
     {
         mazeTexture = ToTexture2D(topDownViewTexture, topDownViewTexture.width, topDownViewTexture.height);
+
         StartCoroutine(RecordUpscaledFrame(1));
     }
 
