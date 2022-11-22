@@ -255,7 +255,7 @@ Camera:
   near clip plane: 0.3
   far clip plane: 1000
   field of view: 60
-  orthographic: 0
+  orthographic: 1
   orthographic size: 5
   m_Depth: 0
   m_CullingMask:
@@ -818,9 +818,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   topDownViewTexture: {fileID: 8400000, guid: 88eeca29fd939154391e7cee45261bc4, type: 2}
-  testTexture: {fileID: 2800000, guid: 73126b9df1aec86499805eca662e6846, type: 3}
-  pictureWidth: {fileID: 0}
-  pictureLength: {fileID: 0}
+  mazeTexture: {fileID: 0}
 --- !u!4 &381415199
 Transform:
   m_ObjectHideFlags: 0
@@ -1495,7 +1493,7 @@ Camera:
   near clip plane: 0.3
   far clip plane: 1000
   field of view: 60
-  orthographic: 0
+  orthographic: 1
   orthographic size: 5
   m_Depth: 0
   m_CullingMask:
@@ -2019,7 +2017,7 @@ Camera:
   near clip plane: 0.3
   far clip plane: 1000
   field of view: 60
-  orthographic: 0
+  orthographic: 1
   orthographic size: 5
   m_Depth: -1
   m_CullingMask:
@@ -2214,7 +2212,7 @@ Camera:
   near clip plane: 0.3
   far clip plane: 1000
   field of view: 60
-  orthographic: 0
+  orthographic: 1
   orthographic size: 5
   m_Depth: -1
   m_CullingMask:
@@ -3189,9 +3187,9 @@ MonoBehaviour:
   mazeHeightSliderText: {fileID: 1944958868537782310}
   mazeLengthSliderText: {fileID: 1944958868162636762}
   playerSpeedSliderText: {fileID: 1809118513}
-  topDownCamera: {fileID: 1276273924}
-  frontCamera: {fileID: 1448027191}
-  firstPersonCamera: {fileID: 425926682}
+  topDownCameraTransform: {fileID: 1276273924}
+  frontCameraTransform: {fileID: 1448027191}
+  firstPersonCameraTransform: {fileID: 425926682}
   curtainAnimators:
   - {fileID: 663212789}
   - {fileID: 1518169412}

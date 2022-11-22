@@ -40,7 +40,9 @@ public class MazeManager : MonoBehaviour
 
     // Camera information
     [SerializeField]
-    private Transform topDownCamera, frontCamera, firstPersonCamera;
+    private Transform topDownCameraTransform, frontCameraTransform, firstPersonCameraTransform;
+    private Camera topDownCamera, topDownAssistantCamera, frontCamera, frontAssistantCamera;
+
     private Vector3 firstPersonCameraOffset = new Vector3(.5f, .5f, .5f);
     private Vector3 firstPersonCameraStartPosition;
     private List<Vector3> firstPersonCameraPositions = new List<Vector3>();
@@ -73,6 +75,12 @@ public class MazeManager : MonoBehaviour
                     break;
             }
         }
+
+        topDownCamera = topDownCameraTransform.GetComponent<Camera>();
+        topDownAssistantCamera = topDownCameraTransform.GetChild(0).GetComponent<Camera>();
+
+        frontCamera = frontCameraTransform.GetComponent<Camera>();
+        frontAssistantCamera = frontCameraTransform.GetChild(0).GetComponent<Camera>();
     }
 
     public void SpawnMaze()
@@ -465,7 +473,6 @@ public class MazeManager : MonoBehaviour
                         trianglesByDividerList[j].Add(lastIndex + 22); // TopRightVertex
 
                         lastIndex += 24;
-
                     }
                 }
             }
@@ -560,9 +567,15 @@ public class MazeManager : MonoBehaviour
         else
             largestBetweenZAndY = mazeDimension.y;
 
-        topDownCamera.transform.position = new Vector3(x, mazeDimension.y + largestBetweenXAndZ, z);
-        frontCamera.transform.position = new Vector3(mazeDimension.x + largestBetweenZAndY, y, z);
-        firstPersonCamera.transform.position = firstPersonCameraStartPosition;
+        topDownCameraTransform.transform.position = new Vector3(x, mazeDimension.y + largestBetweenXAndZ, z);
+        topDownCamera.orthographicSize = largestBetweenXAndZ / 2f;
+        topDownAssistantCamera.orthographicSize = largestBetweenXAndZ / 2f;
+
+        frontCameraTransform.transform.position = new Vector3(mazeDimension.x + largestBetweenZAndY, y, z);
+        frontCamera.orthographicSize = largestBetweenZAndY / 2f;
+        frontAssistantCamera.orthographicSize = largestBetweenXAndZ / 2f;
+
+        firstPersonCameraTransform.transform.position = firstPersonCameraStartPosition;
     }
 
     private IEnumerator FinishMazeGeneration()
@@ -591,20 +604,20 @@ public class MazeManager : MonoBehaviour
 
         for (int i = 0; i < firstPersonCameraPositions.Count; i++)
         {
-            startPosition = firstPersonCamera.position;
+            startPosition = firstPersonCameraTransform.position;
 
             float t = 0f;
             while (t < positionTime)
             {
-                firstPersonCamera.position = Vector3.Lerp(startPosition, firstPersonCameraPositions[i], t / positionTime);
+                firstPersonCameraTransform.position = Vector3.Lerp(startPosition, firstPersonCameraPositions[i], t / positionTime);
                 t += Time.deltaTime;
                 yield return null;
-                firstPersonCamera.position = firstPersonCameraPositions[i];
+                firstPersonCameraTransform.position = firstPersonCameraPositions[i];
             }
             if (t >= positionTime)
             {
                 if (i + 1 < firstPersonCameraPositions.Count)
-                    lookDirection = firstPersonCameraPositions[i + 1] - firstPersonCamera.position;
+                    lookDirection = firstPersonCameraPositions[i + 1] - firstPersonCameraTransform.position;
                 else
                     lookOrientation = startLookOrientation;
 
@@ -624,15 +637,15 @@ public class MazeManager : MonoBehaviour
     IEnumerator RotateFirstPersonCamera(Quaternion endValue, float duration)
     {
         float time = 0;
-        Quaternion startValue = firstPersonCamera.rotation;
+        Quaternion startValue = firstPersonCameraTransform.rotation;
 
         while (time < duration)
         {
-            firstPersonCamera.rotation = Quaternion.Lerp(startValue, endValue, time / duration);
+            firstPersonCameraTransform.rotation = Quaternion.Lerp(startValue, endValue, time / duration);
             time += Time.deltaTime;
             yield return null;
         }
 
-        firstPersonCamera.rotation = endValue;
+        firstPersonCameraTransform.rotation = endValue;
     }
 }
