@@ -7,70 +7,42 @@ using UnityEngine;
 public class ExportManager : MonoBehaviour
 {
     [SerializeField]
-    Texture2D testTexture;
+    private RenderTexture topDownViewTexture;
+    [SerializeField]
+    private Texture2D mazeTexture;
 
 #if UNITY_WEBGL && !UNITY_EDITOR
     [DllImport("__Internal")]
     private static extern void DownloadFile(byte[] array, int byteLength, string fileName);
-
-    [DllImport("__Internal")]
-    private static extern void Hello();
-
-    [DllImport("__Internal")]
-    private static extern void HelloString(string str);
-
-    [DllImport("__Internal")]
-    private static extern void PrintFloatArray(float[] array, int size);
-
-    [DllImport("__Internal")]
-    private static extern int AddNumbers(int x, int y);
-
-    [DllImport("__Internal")]
-    private static extern string StringReturnValueFunction();
-
 #endif
-
-    void Start()
-    {
-#if UNITY_WEBGL && !UNITY_EDITOR
-
-        Hello();
-
-        HelloString("This is a string.");
-
-        float[] myArray = new float[10];
-        PrintFloatArray(myArray, myArray.Length);
-
-        int result = AddNumbers(5, 7);
-        Debug.Log(result);
-
-        Debug.Log(StringReturnValueFunction());
-#endif
-    }
 
     IEnumerator RecordUpscaledFrame(int screenshotUpscale)
     {
         yield return new WaitForEndOfFrame();
 
 #if UNITY_WEBGL && !UNITY_EDITOR
-        int resWidthN = Camera.main.pixelWidth * screenshotUpscale;
-        int resHeightN = Camera.main.pixelHeight * screenshotUpscale;
         string dateFormat = "yyyy-MM-dd-HH-mm-ss";
-        string filename = resWidthN.ToString() + "x" + resHeightN.ToString() + "px_" + System.DateTime.Now.ToString(dateFormat);
-        Texture2D screenShot = ScreenCapture.CaptureScreenshotAsTexture(screenshotUpscale);
-        byte[] texture = screenShot.EncodeToPNG();
+        string filename = "perfect-maze-" + System.DateTime.Now.ToString(dateFormat);
+
+        byte[] texture = mazeTexture.EncodeToPNG();
         DownloadFile(texture, texture.Length, filename + ".png");
-        Object.Destroy(screenShot);
 #endif
 
     }
 
-    void Update()
+    public void GeneratePicture()
     {
-        // Example of how to call the coroutine
-        if (Input.GetKeyDown(KeyCode.P))
-        {
-            StartCoroutine(RecordUpscaledFrame(1));
-        }
+        mazeTexture = ToTexture2D(topDownViewTexture, topDownViewTexture.width, topDownViewTexture.height);
+        StartCoroutine(RecordUpscaledFrame(1));
+    }
+
+    private Texture2D ToTexture2D(RenderTexture rendertexture, int width, int height)
+    {
+        Texture2D newTexture2D = new Texture2D(width, height, TextureFormat.RGBA32, false);
+        // ReadPixels looks at the active RenderTexture.
+        RenderTexture.active = rendertexture;
+        newTexture2D.ReadPixels(new Rect(0, 0, rendertexture.width, rendertexture.height), 0, 0);
+        newTexture2D.Apply();
+        return newTexture2D;
     }
 }
