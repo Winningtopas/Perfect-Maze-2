@@ -569,7 +569,7 @@ public class MazeManager : MonoBehaviour
         else
             largestBetweenZAndY = mazeDimension.y;
 
-        topDownCameraTransform.transform.position = new Vector3(x, largestBetweenXAndZ, z);
+        topDownCameraTransform.transform.position = new Vector3(x, largestBetweenXAndZ + y, z);
         topDownCamera.orthographicSize = largestBetweenXAndZ / 2f;
         topDownAssistantCamera.orthographicSize = largestBetweenXAndZ / 2f;
 
