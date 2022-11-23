@@ -27,7 +27,6 @@ public class ExportManager : MonoBehaviour
         byte[] texture = mazeTexture.EncodeToPNG();
         DownloadFile(texture, texture.Length, filename + ".png");
 #endif
-
     }
 
     public void GeneratePicture()

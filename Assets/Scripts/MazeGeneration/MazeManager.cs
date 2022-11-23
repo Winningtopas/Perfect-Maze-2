@@ -58,6 +58,8 @@ public class MazeManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        Debug.Log(SystemInfo.graphicsDeviceType);
+
         trianglesByDividerList.Add(trianglesListDivider0);
         trianglesByDividerList.Add(trianglesListDivider1);
         trianglesByDividerList.Add(trianglesListDivider2);
@@ -567,7 +569,7 @@ public class MazeManager : MonoBehaviour
         else
             largestBetweenZAndY = mazeDimension.y;
 
-        topDownCameraTransform.transform.position = new Vector3(x, mazeDimension.y + largestBetweenXAndZ, z);
+        topDownCameraTransform.transform.position = new Vector3(x, largestBetweenXAndZ, z);
         topDownCamera.orthographicSize = largestBetweenXAndZ / 2f;
         topDownAssistantCamera.orthographicSize = largestBetweenXAndZ / 2f;
 
