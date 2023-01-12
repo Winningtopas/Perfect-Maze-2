@@ -87,7 +87,7 @@ public class MeshGenerator : MonoBehaviour
             {
                 if (cells[i].dividers[j])
                 {
-                    if (cells[i].isStartCell && j == 0 && cells[i].positions[0].y != 0) // if the startcell is not on the ground, leave it empty so the fp camera can move through it.
+                    if (cells[i].isStartCell && j == 0 && cells[i].positions[0].y != 0) // if the startcell of this floor is not on the ground floor, then leave it empty.
                     { }
                     else
                     {
